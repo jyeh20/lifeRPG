@@ -1,22 +1,18 @@
 {
   "name": "server",
   "version": "1.0.0",
-  "description": "Server for LifeRPG",
+  "description": "",
   "main": "index.js",
+  "type": "module",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "jest"
   },
-  "repository": {
-    "type": "git",
-    "url": "git+ssh://git@github.com/jyeh20/lifeRPG.git"
-  },
+  "keywords": [],
   "author": "Jonathan Yeh",
   "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/jyeh20/lifeRPG/issues"
-  },
-  "homepage": "https://github.com/jyeh20/lifeRPG#readme",
   "dependencies": {
-    "express": "^4.18.1"
+    "dotenv": "^16.0.1",
+    "express": "^4.18.1",
+    "pg": "^8.7.3"
   }
 }
