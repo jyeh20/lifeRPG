@@ -1,7 +1,7 @@
-import express from "express";
+import Router from "express-promise-router";
 import * as ctrl from "../controllers/users.js";
 
-const router = express.Router();
+const router = new Router();
 
 router.get("/users", ctrl.getUsers);
 router.get("/users/:id", ctrl.getUserById);

@@ -1,6 +1,6 @@
 import express from "express";
 import bodyParser from "body-parser";
-import usersRouter from "./routes/usersRouter.js";
+import * as routes from "./routes/index.js";
 
 const app = express();
 
@@ -11,6 +11,8 @@ app.get("/", (request, response) => {
   response.json({ info: "Node.js, Express, and Postgres API" });
 });
 
-app.use(usersRouter);
+app.use(routes.users);
+app.use(routes.commissions);
+app.use(routes.goals);
 
 export default app;

@@ -1,53 +1,30 @@
-import dotenv from "dotenv";
-import pkg from "pg";
-
-const Pool = pkg.Pool;
-const nodeEnv = process.env.NODE_ENV || "development";
-
-switch (nodeEnv) {
-  case "production":
-    dotenv.config({ path: "../config/config.prod.env" });
-    break;
-  case "test":
-    dotenv.config({ path: "../config/config.test.env" });
-    break;
-  default:
-    dotenv.config({ path: "../config/config.dev.env" });
-}
-console.log(process.env.SERVER_PORT);
-
-const pool = new Pool({
-  user: process.env.DB_USER,
-  host: process.env.HOST,
-  database: process.env.DB,
-  password: process.env.DB_PASS,
-  port: process.env.DB_PORT,
-});
+import { query } from "../db/index.js";
 
 /**
  * @description - This function is used to get all users in the database
  * @param {object} request - The request object
  * @param {object} response - The response object
  */
-const getUsers = (req, res) => {
-  console.log(pool);
-  pool.query("SELECT * FROM USERS ORDER BY id ASC;", (error, results) => {
-    if (error) {
-      console.log(error);
-      throw error;
-    }
-    res.status(200).json(results.rows);
-  });
+const getUsers = async (req, res) => {
+  try {
+    const { rows } = await query("SELECT * FROM USERS;");
+    res.status(200).json(rows);
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ error: error.message });
+  }
 };
 
-const getUserById = (req, res) => {
+const getUserById = async (req, res) => {
   const id = Number(req.params.id);
-  pool.query("SELECT * FROM USERS WHERE id = $1", [id], (error, results) => {
-    if (error) {
-      throw error;
-    }
+
+  try {
+    const { rows } = await query("SELECT * FROM USERS WHERE id = $1;", [id]);
     res.status(200).json(results.rows);
-  });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ error: error.message });
+  }
 };
 
 /**
@@ -55,87 +32,146 @@ const getUserById = (req, res) => {
  * @param {object} request - The request object
  * @param {object} response - The response object
  */
-const createUser = (req, res) => {
+const createUser = async (req, res) => {
   const {
-    name,
+    firstName,
+    lastName,
     username,
     birthday,
     email,
     password,
+    dailyReward,
+    weeklyReward,
+    monthlyReward,
+    yearlyReward,
+    maxCommissionsDay,
     maxCommissionsWeek,
     maxCommissionsMonth,
     maxCommissionsYear,
   } = req.body;
 
-  pool.query(
-    `INSERT into USERS (
-        name, username, birthday, email, password, max_commissions_week, max_commissions_month, max_commissions_year
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *;`,
-    [
-      name,
-      username,
-      birthday || "NULL",
-      email,
-      password,
-      maxCommissionsWeek,
-      maxCommissionsMonth,
-      maxCommissionsYear,
-    ],
-    (error, results) => {
-      if (error) {
-        throw error;
-      }
-      res
-        .status(201)
-        .json(console.log(`Created user with id ${results.rows[0]}`));
-    }
-  );
+  try {
+    const { rows } = await query(
+      `
+      INSERT INTO USERS (
+        first_name,
+        last_name,
+        username,
+        birthday,
+        email,
+        password,
+        daily_reward,
+        weekly_reward,
+        monthly_reward,
+        yearly_reward,
+        max_commissions_day,
+        max_commissions_week,
+        max_commissions_month,
+        max_commissions_year
+      ) VALUES (
+        $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14
+      ) RETURNING *;
+      `,
+      [
+        firstName,
+        lastName,
+        username,
+        birthday || null,
+        email,
+        password,
+        dailyReward || 5,
+        weeklyReward || 5,
+        monthlyReward || 5,
+        yearlyReward || 5,
+        maxCommissionsDay || 5,
+        maxCommissionsWeek || 3,
+        maxCommissionsMonth || 3,
+        maxCommissionsYear || 3,
+      ]
+    );
+    res.status(200).json(`Created user with id ${rows[0].id}`);
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ error: error.message });
+  }
 };
 
-const updateUser = (req, res) => {
+const updateUser = async (req, res) => {
   const id = Number(req.params.id);
   const {
-    name,
+    firstName,
+    lastName,
     username,
     birthday,
     email,
     password,
+    dailyReward,
+    weeklyReward,
+    monthlyReward,
+    yearlyReward,
+    maxCommissionsDay,
     maxCommissionsWeek,
     maxCommissionsMonth,
     maxCommissionsYear,
   } = req.body;
 
-  pool.query(
-    "UPDATE USERS SET name=$1, username=$2, birthday=$3, email=$4, password=$5, max_commissions_week=$6, max_commissions_month=$7, max_commissions_year=$8 WHERE id=$9;",
-    [
-      name,
-      username,
-      birthday || "NULL",
-      email,
-      password,
-      maxCommissionsWeek,
-      maxCommissionsMonth,
-      maxCommissionsYear,
-      id,
-    ],
-    (error, results) => {
-      if (error) {
-        throw error;
-      }
-      res.status(200).json(`User modified with ID: ${id}`);
-    }
-  );
+  try {
+    const { rows } = await query(
+      `
+      UPDATE USERS SET
+        first_name = $1,
+        last_name = $2,
+        username = $3,
+        birthday = $4,
+        email = $5,
+        password = $6,
+        daily_reward = $7,
+        weekly_reward = $8,
+        monthly_reward = $9,
+        yearly_reward = $10,
+        max_commissions_day = $11,
+        max_commissions_week = $12,
+        max_commissions_month = $13,
+        max_commissions_year = $14
+      WHERE id = $15 RETURNING *;
+      `,
+      [
+        firstName,
+        lastName,
+        username,
+        birthday,
+        email,
+        password,
+        dailyReward,
+        weeklyReward,
+        monthlyReward,
+        yearlyReward,
+        maxCommissionsDay,
+        maxCommissionsWeek,
+        maxCommissionsMonth,
+        maxCommissionsYear,
+        id,
+      ]
+    );
+    res.status(200).json(`User modified with ID: ${id}`);
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ error: error.message });
+  }
 };
 
-const deleteUser = (request, response) => {
+const deleteUser = async (request, response) => {
   const id = Number(request.params.id);
 
-  pool.query("DELETE FROM users WHERE id = $1", [id], (error, results) => {
-    if (error) {
-      throw error;
-    }
-    response.status(200).send(`User deleted with ID: ${id}`);
-  });
+  try {
+    const { rows } = await query("DELETE FROM USERS WHERE id=$1 RETURNING *;", [
+      id,
+    ]);
+    response.status(200).json(`User deleted with ID: ${id}`);
+  } catch (error) {
+    console.log(error);
+    response.status(500).json({ error: error.message });
+  }
 };
 
 export { getUsers, getUserById, createUser, updateUser, deleteUser };
