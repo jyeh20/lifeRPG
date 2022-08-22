@@ -46,11 +46,12 @@ const getCommissionsWithUserId = async (req, res) => {
 
 const createCommission = async (req, res) => {
   const commission = new Commission(req.body);
+  console.log(commission.name);
 
   try {
     const { rows } = await query(
       `INSERT into COMMISSIONS (
-        creator_id
+        creator_id,
         name,
         description,
         freq_week,
@@ -62,7 +63,9 @@ const createCommission = async (req, res) => {
         ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *;`,
       commission.getCommissionAsArray()
     );
-    res.status(200).json(`Created commission with id ${rows[0].id}`);
+
+    console.log(`Successfully created commission with id: ${rows[0].id}`);
+    res.status(200).json(rows);
   } catch (error) {
     console.log(error);
     res.status(500).json({ error: error.message });
@@ -89,6 +92,8 @@ const updateCommission = async (req, res) => {
         WHERE id = $10 RETURNING *;`,
       [...updatedCommission.getCommissionAsArray(), id]
     );
+
+    console.log(`Successfully updated commission ${id}`);
     res.status(200).json(rows);
   } catch (error) {
     console.log(error);

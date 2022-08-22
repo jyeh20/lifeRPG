@@ -47,12 +47,14 @@ const createGoal = async (req, res) => {
   try {
     const { rows } = await query(
       `INSERT into GOALS (
-        creator, name, description, reward,
+        creator_id, name, description, reward
       ) VALUES ($1, $2, $3, $4) RETURNING *;`,
 
       goal.getGoalAsArray()
     );
-    res.status(200).json(`Created goal with id ${rows[0].id}`);
+
+    console.log(`Successfully created goal with id: ${rows[0].id}`);
+    res.status(200).json(rows);
   } catch (error) {
     console.log(error);
     res.status(500).json({ error: error.message });
@@ -68,13 +70,15 @@ const updateGoal = async (req, res) => {
   try {
     const { rows } = await query(
       `UPDATE GOALS SET
-        creator = $1,
+        creator_id = $1,
         name = $2,
         description = $3,
         reward = $4
       WHERE id = $5 RETURNING *;`,
-      [...updatedGoal.getGoalAsArray, id]
+      [...updatedGoal.getGoalAsArray(), id]
     );
+
+    console.log(`Successfully updated goal ${id}`);
     res.status(200).json(rows);
   } catch (error) {
     console.log(error);

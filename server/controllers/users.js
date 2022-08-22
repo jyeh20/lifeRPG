@@ -81,8 +81,9 @@ const createUser = async (req, res) => {
       `,
       user.getUserAsArray()
     );
-    console.log(rows);
-    res.status(200).json(`Created user with id ${rows[0].id}`);
+
+    console.log(`Successfully created user with id: ${rows[0].id}`);
+    res.status(200).json(rows);
   } catch (error) {
     console.log(error);
     res.status(500).json({ error: error.message });
@@ -153,7 +154,9 @@ const updateUser = async (req, res) => {
       `,
       [...updatedUser.getUserAsArray(), id]
     );
-    res.status(200).json(`User modified with ID: ${id}`);
+
+    console.log(`Successfully updated user ${id}`);
+    res.status(200).json(rows);
   } catch (error) {
     console.log(error);
     res.status(500).json({ error: error.message });
