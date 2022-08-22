@@ -20,8 +20,8 @@ class Commission {
       this.freqMonth || 0,
       this.freqYear || 0,
       this.difficulty || 1,
-      this.numTimesCompleted,
-      this.completed,
+      this.numTimesCompleted || 0,
+      this.completed || 0,
     ];
   }
 }

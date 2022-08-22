@@ -7,6 +7,8 @@ class Goal {
   }
 
   getGoalAsArray() {
-    return [this.creatorId, this.name, this.description, this.reward || 0];
+    return [this.creatorId, this.name, this.description, this.reward || 2];
   }
 }
+
+export default Goal;

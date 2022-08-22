@@ -17,7 +17,7 @@ class User {
     this.points = input.points;
   }
 
-  getUser() {
+  getUserAsArray() {
     return [
       this.firstName,
       this.lastName,
