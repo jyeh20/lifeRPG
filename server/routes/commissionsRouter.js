@@ -5,6 +5,7 @@ const router = express.Router();
 
 router.get("/commissions", ctrl.getCommissions);
 router.get("/commissions/:id", ctrl.getCommissionById);
+router.get("/commissions/user/:id", ctrl.getCommissionsWithUserId);
 router.post("/commissions", ctrl.createCommission);
 router.put("/commissions/:id", ctrl.updateCommission);
 router.delete("/commissions/:id", ctrl.deleteCommission);
