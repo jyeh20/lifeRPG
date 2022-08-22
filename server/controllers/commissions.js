@@ -1,4 +1,5 @@
 import { query } from "../db/index.js";
+import { Commission } from "../models/index.js";
 
 // GET
 
@@ -44,30 +45,22 @@ const getCommissionsWithUserId = async (req, res) => {
 // POST
 
 const createCommission = async (req, res) => {
-  const {
-    name,
-    description,
-    freqWeek,
-    freqMonth,
-    freqYear,
-    difficulty,
-    creatorId,
-  } = req.body;
+  const commission = new Commission(req.body);
 
   try {
     const { rows } = await query(
       `INSERT into COMMISSIONS (
-        name, description, freq_week, freq_month, freq_year, difficulty, creator_id
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *;`,
-      [
+        creator_id
         name,
         description,
-        freqWeek || 0,
-        freqMonth || 0,
-        freqYear || 0,
-        difficulty || 1,
-        creatorId,
-      ]
+        freq_week,
+        freq_month,
+        freq_year,
+        difficulty,
+        num_times_completed,
+        completed
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *;`,
+      commission.getCommissionAsArray()
     );
     res.status(200).json(`Created commission with id ${rows[0].id}`);
   } catch (error) {
@@ -80,42 +73,21 @@ const createCommission = async (req, res) => {
 
 const updateCommission = async (req, res) => {
   const id = Number(req.params.id);
-  const {
-    name,
-    description,
-    freqWeek,
-    freqMonth,
-    freqYear,
-    difficulty,
-    numTimesCompleted,
-    completed,
-    creatorId,
-  } = req.body;
+  const updatedCommission = new Commission(req.body);
   try {
     const { rows } = await query(
       `UPDATE COMMISSIONS SET
-        name = $1,
-        description = $2,
-        freq_week = $3,
-        freq_month = $4,
-        freq_year = $5,
-        difficulty = $6,
-        num_times_completed = $7,
-        completed = $8,
-        creator_id = $9
+        creator_id = $1,
+        name = $2,
+        description = $3,
+        freq_week = $4,
+        freq_month = $5,
+        freq_year = $6,
+        difficulty = $7,
+        num_times_completed = $8,
+        completed = $9
         WHERE id = $10 RETURNING *;`,
-      [
-        name,
-        description,
-        freqWeek,
-        freqMonth,
-        freqYear,
-        difficulty,
-        numTimesCompleted,
-        completed,
-        creatorId,
-        id,
-      ]
+      [...updatedCommission.getCommissionAsArray(), id]
     );
     res.status(200).json(rows);
   } catch (error) {

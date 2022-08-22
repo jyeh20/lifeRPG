@@ -1,4 +1,5 @@
 import { query } from "../db/index.js";
+import { Goal } from "../models/index.js";
 
 // GET
 
@@ -41,14 +42,15 @@ const getGoalsWithUserId = async (req, res) => {
 // POST
 
 const createGoal = async (req, res) => {
-  const { name, description, reward, creator } = req.body;
+  const goal = new Goal(req.body);
 
   try {
     const { rows } = await query(
       `INSERT into GOALS (
-        name, description, reward, creator
+        creator, name, description, reward,
       ) VALUES ($1, $2, $3, $4) RETURNING *;`,
-      [name, description, reward, creator]
+
+      goal.getGoalAsArray()
     );
     res.status(200).json(`Created goal with id ${rows[0].id}`);
   } catch (error) {
@@ -61,17 +63,17 @@ const createGoal = async (req, res) => {
 
 const updateGoal = async (req, res) => {
   const id = Number(req.params.id);
-  const { name, description, reward, creator } = req.body;
+  const updatedGoal = new Goal(req.body);
 
   try {
     const { rows } = await query(
       `UPDATE GOALS SET
-        name = $1,
-        description = $2,
-        reward = $3,
-        creator = $4
+        creator = $1,
+        name = $2,
+        description = $3,
+        reward = $4
       WHERE id = $5 RETURNING *;`,
-      [name, description, reward, creator, id]
+      [...updatedGoal.getGoalAsArray, id]
     );
     res.status(200).json(rows);
   } catch (error) {

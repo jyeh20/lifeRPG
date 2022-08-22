@@ -1,6 +1,6 @@
 import dotenv from "dotenv";
 import { query } from "../db/index.js";
-import { UserModel } from "../models/index.js";
+import { User } from "../models/index.js";
 import bcrypt from "bcrypt";
 
 const nodeEnv = process.env.NODE_ENV || "development";
@@ -49,7 +49,7 @@ const getUserById = async (req, res) => {
  * @param {object} response - The response object
  */
 const createUser = async (req, res) => {
-  const user = new UserModel(req.body);
+  const user = new User(req.body);
 
   try {
     user.password = await bcrypt.hash(
@@ -79,7 +79,7 @@ const createUser = async (req, res) => {
         $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15
       ) RETURNING *;
       `,
-      user.getUser()
+      user.getUserAsArray()
     );
     console.log(rows);
     res.status(200).json(`Created user with id ${rows[0].id}`);
@@ -128,22 +128,7 @@ const getUserWithLogin = async (req, res) => {
 
 const updateUser = async (req, res) => {
   const id = Number(req.params.id);
-  const {
-    firstName,
-    lastName,
-    username,
-    birthday,
-    email,
-    password,
-    dailyReward,
-    weeklyReward,
-    monthlyReward,
-    yearlyReward,
-    maxCommissionsDay,
-    maxCommissionsWeek,
-    maxCommissionsMonth,
-    maxCommissionsYear,
-  } = req.body;
+  const updatedUser = new User(req.body);
 
   try {
     const { rows } = await query(
@@ -162,26 +147,11 @@ const updateUser = async (req, res) => {
         max_commissions_day = $11,
         max_commissions_week = $12,
         max_commissions_month = $13,
-        max_commissions_year = $14
-      WHERE id = $15 RETURNING *;
+        max_commissions_year = $14,
+        points = $15
+      WHERE id = $16 RETURNING *;
       `,
-      [
-        firstName,
-        lastName,
-        username,
-        birthday,
-        email,
-        password,
-        dailyReward,
-        weeklyReward,
-        monthlyReward,
-        yearlyReward,
-        maxCommissionsDay,
-        maxCommissionsWeek,
-        maxCommissionsMonth,
-        maxCommissionsYear,
-        id,
-      ]
+      [...updatedUser.getUserAsArray(), id]
     );
     res.status(200).json(`User modified with ID: ${id}`);
   } catch (error) {
