@@ -1,5 +1,6 @@
 class User {
   constructor(input) {
+    this.id = input.id;
     this.firstName = input.firstName;
     this.lastName = input.lastName;
     this.username = input.username;
@@ -17,8 +18,30 @@ class User {
     this.points = input.points;
   }
 
+  getUser() {
+    return {
+      id: this.id,
+      firstName: this.firstName,
+      lastName: this.lastName,
+      username: this.username,
+      birthday: this.birthday || null,
+      email: this.email,
+      password: this.password,
+      dailyReward: this.dailyReward || 5,
+      weeklyReward: this.weeklyReward || 5,
+      monthlyReward: this.monthlyReward || 5,
+      yearlyReward: this.yearlyReward || 5,
+      maxCommissionsDay: this.maxCommissionsDay || 5,
+      maxCommissionsWeek: this.maxCommissionsWeek || 3,
+      maxCommissionsMonth: this.maxCommissionsMonth || 3,
+      maxCommissionsYear: this.maxCommissionsYear || 3,
+      points: this.points || 0,
+    };
+  }
+
   getUserAsArray() {
     return [
+      this.id,
       this.firstName,
       this.lastName,
       this.username,

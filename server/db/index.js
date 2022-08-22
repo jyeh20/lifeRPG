@@ -6,6 +6,7 @@ import dotenv from "dotenv";
 import pg from "pg";
 
 const Pool = pg.Pool;
+const Client = pg.Client;
 const nodeEnv = process.env.NODE_ENV || "development";
 
 switch (nodeEnv) {
@@ -63,4 +64,4 @@ const getClient = async () => {
   return client;
 };
 
-export { query, getClient };
+export { pool, query, getClient };

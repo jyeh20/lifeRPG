@@ -1,6 +1,7 @@
 import dotenv from "dotenv";
-import { query } from "../db/index.js";
+import { pool, query } from "../db/index.js";
 import { User } from "../models/index.js";
+import { generateToken, verifyToken } from "../auth/jwt.js";
 import bcrypt from "bcrypt";
 
 const nodeEnv = process.env.NODE_ENV || "development";
@@ -62,6 +63,7 @@ const getUserByUsername = async (req, res) => {
  * @param {object} request - The request object
  * @param {object} response - The response object
  */
+// TODO: make this a transaction
 const createUser = async (req, res) => {
   const user = new User(req.body);
 
@@ -93,14 +95,20 @@ const createUser = async (req, res) => {
         $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15
       ) RETURNING *;
       `,
-      user.getUserAsArray()
+      user.getUserAsArray().filter((prop) => prop !== undefined)
     );
 
+    const token = generateToken({ id: rows[0].id }, "1hr");
+    const decoded = verifyToken(token);
+
+    console.log("Token: ", token);
+    console.log("Decoded: ", decoded);
+
     console.log(`Successfully created user with id: ${rows[0].id}`);
-    res.status(200).json(rows);
+    res.status(200).json(token);
   } catch (error) {
     console.log(error);
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ errorCode: error.code, error: error.message });
   }
 };
 
