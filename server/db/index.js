@@ -1,3 +1,7 @@
+/**
+ * Credit: https://node-postgres.com/guides/project-structure
+ */
+
 import dotenv from "dotenv";
 import pg from "pg";
 
@@ -24,7 +28,39 @@ const pool = new Pool({
 });
 
 const query = async (sql, params) => {
-  return pool.query(sql, params);
+  const start = Date.now();
+  const result = await pool.query(sql, params);
+  const duration = Date.now() - start;
+  console.log(`\nQuery ${sql} took ${duration}ms\n`);
+  return result;
 };
 
-export { query };
+const getClient = async () => {
+  const client = await pool.connect();
+  const query = client.query;
+  const release = client.release;
+
+  const timeout = setTimeout(() => {
+    console.error("Client has been checked out for too long");
+    console.error(
+      `Last executed query on this client was: ${client.lastQuery}`
+    );
+  }, 5000);
+
+  client.query = (...args) => {
+    client.lastQuery = args;
+    return query.apply(client, args);
+  };
+
+  client.release = () => {
+    clearTimeout(timeout);
+
+    client.query = query;
+    client.release = release;
+    return release.apply(client);
+  };
+
+  return client;
+};
+
+export { query, getClient };
