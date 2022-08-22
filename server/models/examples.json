@@ -1,0 +1,35 @@
+{
+  "User": {
+    "firstName": "Jonny",
+    "lastName": "Test",
+    "username": "JonnyTest",
+    "password": "password",
+    "email": "test@jonny.com",
+    "dailyReward": 2,
+    "weeklyReward": 4,
+    "monthlyReward": 4,
+    "yearlyReward": 5,
+    "maxCommissionsDay": 5,
+    "maxCommissionsWeek": 6,
+    "maxCommissionsMonth": 5,
+    "maxCommissionsYear": 5,
+    "points": 5
+  },
+
+  "Commission": {
+    "creatorId": 1,
+    "name": "First Commission",
+    "description": "This is my first Commission",
+    "freqWeek": 4,
+    "difficulty": 3,
+    "numTimesCompleted": 500,
+    "completed": 1
+  },
+
+  "Goal": {
+    "creatorId": 1,
+    "name": "First Goal",
+    "description": "This is my first Goal",
+    "reward": 500
+  }
+}
