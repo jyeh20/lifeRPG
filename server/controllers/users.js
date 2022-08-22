@@ -43,6 +43,20 @@ const getUserById = async (req, res) => {
   }
 };
 
+const getUserByUsername = async (req, res) => {
+  const username = req.params.username;
+
+  try {
+    const { rows } = await query("SELECT * FROM USERS WHERE username = $1;", [
+      username,
+    ]);
+    res.status(200).json(rows);
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ error: error.message });
+  }
+};
+
 /**
  * @description - This function is used to create a user in the database and logs the new user's ID
  * @param {object} request - The request object
@@ -92,25 +106,26 @@ const createUser = async (req, res) => {
 
 const getUserWithLogin = async (req, res) => {
   const { usernameOrEmail, password } = req.body;
-  const user = undefined;
+  let user = undefined;
 
   try {
     // check if input is a username
-    const { username } = await query("SELECT * FROM USERS WHERE username=$1;", [
+    const { rows } = await query(`SELECT * FROM USERS WHERE username = $1;`, [
       usernameOrEmail,
     ]);
-    if (username) {
-      user = username;
+    if (rows.length !== 0) {
+      user = rows;
     } else {
-      const { email } = await query("SELECT * FROM USERS WHERE email=$1;", [
+      const { rows } = await query("SELECT * FROM USERS WHERE email = $1;", [
         usernameOrEmail,
       ]);
-      if (email) {
-        user = email;
+      if (rows.length !== 0) {
+        user = rows;
       }
     }
 
     if (user) {
+      user = user[0];
       // try login
       const comparedPassword = await bcrypt.compare(password, user.password);
       if (comparedPassword) {
@@ -180,6 +195,7 @@ const deleteUser = async (request, response) => {
 export {
   getUsers,
   getUserById,
+  getUserByUsername,
   createUser,
   getUserWithLogin,
   updateUser,
