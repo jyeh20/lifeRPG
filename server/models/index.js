@@ -1,3 +1,5 @@
-import UserModel from "./UserModel.js";
+import User from "./User.js";
+import Commission from "./Commission.js";
+import Goal from "./Goal.js";
 
-export { UserModel };
+export { User, Commission, Goal };

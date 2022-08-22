@@ -1,4 +1,4 @@
-class CommissionModel {
+class Commission {
   constructor(input) {
     this.creatorId = input.creatorId;
     this.name = input.name;
@@ -7,23 +7,23 @@ class CommissionModel {
     this.freqMonth = input.freqMonth;
     this.freqYear = input.freqYear;
     this.difficulty = input.difficulty;
-    this.num_times_completed = input.num_times_completed;
+    this.numTimesCompleted = input.numTimesCompleted;
     this.completed = input.completed;
   }
 
-  getCommission() {
+  getCommissionAsArray() {
     return [
       this.creatorId,
       this.name,
       this.description,
-      this.freqWeek,
-      this.freqMonth,
-      this.freqYear,
-      this.difficulty,
-      this.num_times_completed,
+      this.freqWeek || 0,
+      this.freqMonth || 0,
+      this.freqYear || 0,
+      this.difficulty || 1,
+      this.numTimesCompleted,
       this.completed,
     ];
   }
 }
 
-export default CommissionModel;
+export default Commission;

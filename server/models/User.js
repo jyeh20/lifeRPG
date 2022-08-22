@@ -1,4 +1,4 @@
-class UserModel {
+class User {
   constructor(input) {
     this.firstName = input.firstName;
     this.lastName = input.lastName;
@@ -38,4 +38,4 @@ class UserModel {
   }
 }
 
-export default UserModel;
+export default User;
