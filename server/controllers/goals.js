@@ -1,5 +1,7 @@
 import { query } from "../db/index.js";
 
+// GET
+
 const getGoals = async (req, res) => {
   try {
     const { rows } = await query("SELECT * FROM GOALS;");
@@ -22,6 +24,22 @@ const getGoalById = async (req, res) => {
   }
 };
 
+const getGoalsWithUserId = async (req, res) => {
+  const id = Number(req.params.id);
+
+  try {
+    const { rows } = await query("SELECT * FROM GOALS WHERE creator_id = $1;", [
+      id,
+    ]);
+    res.status(200).json(rows);
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ error: error.message });
+  }
+};
+
+// POST
+
 const createGoal = async (req, res) => {
   const { name, description, reward, creator } = req.body;
 
@@ -38,6 +56,8 @@ const createGoal = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+
+// PUT
 
 const updateGoal = async (req, res) => {
   const id = Number(req.params.id);
@@ -60,6 +80,8 @@ const updateGoal = async (req, res) => {
   }
 };
 
+// DELETE
+
 const deleteGoal = async (req, res) => {
   const id = Number(req.params.id);
 
@@ -72,6 +94,11 @@ const deleteGoal = async (req, res) => {
   }
 };
 
-// TODO: add a function to get all goals for a user with user ID
-
-export { getGoals, getGoalById, createGoal, updateGoal, deleteGoal };
+export {
+  getGoals,
+  getGoalById,
+  getGoalsWithUserId,
+  createGoal,
+  updateGoal,
+  deleteGoal,
+};
