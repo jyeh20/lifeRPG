@@ -1,4 +1,20 @@
+import dotenv from "dotenv";
 import { query } from "../db/index.js";
+import { UserModel } from "../models/index.js";
+import bcrypt from "bcrypt";
+
+const nodeEnv = process.env.NODE_ENV || "development";
+
+switch (nodeEnv) {
+  case "production":
+    dotenv.config({ path: "../config/config.prod.env" });
+    break;
+  case "test":
+    dotenv.config({ path: "../config/config.test.env" });
+    break;
+  default:
+    dotenv.config({ path: "../config/config.dev.env" });
+}
 
 /**
  * @description - This function is used to get all users in the database
@@ -20,7 +36,7 @@ const getUserById = async (req, res) => {
 
   try {
     const { rows } = await query("SELECT * FROM USERS WHERE id = $1;", [id]);
-    res.status(200).json(results.rows);
+    res.status(200).json(rows);
   } catch (error) {
     console.log(error);
     res.status(500).json({ error: error.message });
@@ -33,24 +49,14 @@ const getUserById = async (req, res) => {
  * @param {object} response - The response object
  */
 const createUser = async (req, res) => {
-  const {
-    firstName,
-    lastName,
-    username,
-    birthday,
-    email,
-    password,
-    dailyReward,
-    weeklyReward,
-    monthlyReward,
-    yearlyReward,
-    maxCommissionsDay,
-    maxCommissionsWeek,
-    maxCommissionsMonth,
-    maxCommissionsYear,
-  } = req.body;
+  const user = new UserModel(req.body);
 
   try {
+    user.password = await bcrypt.hash(
+      user.password,
+      Number(process.env.SALT_ROUNDS)
+    );
+
     const { rows } = await query(
       `
       INSERT INTO USERS (
@@ -67,29 +73,53 @@ const createUser = async (req, res) => {
         max_commissions_day,
         max_commissions_week,
         max_commissions_month,
-        max_commissions_year
+        max_commissions_year,
+        points
       ) VALUES (
-        $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14
+        $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15
       ) RETURNING *;
       `,
-      [
-        firstName,
-        lastName,
-        username,
-        birthday || null,
-        email,
-        password,
-        dailyReward || 5,
-        weeklyReward || 5,
-        monthlyReward || 5,
-        yearlyReward || 5,
-        maxCommissionsDay || 5,
-        maxCommissionsWeek || 3,
-        maxCommissionsMonth || 3,
-        maxCommissionsYear || 3,
-      ]
+      user.getUser()
     );
+    console.log(rows);
     res.status(200).json(`Created user with id ${rows[0].id}`);
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ error: error.message });
+  }
+};
+
+const getUserWithLogin = async (req, res) => {
+  const { usernameOrEmail, password } = req.body;
+  const user = undefined;
+
+  try {
+    // check if input is a username
+    const { username } = await query("SELECT * FROM USERS WHERE username=$1;", [
+      usernameOrEmail,
+    ]);
+    if (username) {
+      user = username;
+    } else {
+      const { email } = await query("SELECT * FROM USERS WHERE email=$1;", [
+        usernameOrEmail,
+      ]);
+      if (email) {
+        user = email;
+      }
+    }
+
+    if (user) {
+      // try login
+      const comparedPassword = await bcrypt.compare(password, user.password);
+      if (comparedPassword) {
+        res.status(200).json(user);
+      } else {
+        res.status(400).json({ error: "Invalid password" });
+      }
+    } else {
+      res.status(400).json({ error: "Invalid username or email" });
+    }
   } catch (error) {
     console.log(error);
     res.status(500).json({ error: error.message });
@@ -174,4 +204,11 @@ const deleteUser = async (request, response) => {
   }
 };
 
-export { getUsers, getUserById, createUser, updateUser, deleteUser };
+export {
+  getUsers,
+  getUserById,
+  createUser,
+  getUserWithLogin,
+  updateUser,
+  deleteUser,
+};

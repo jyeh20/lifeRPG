@@ -1,5 +1,7 @@
 import { query } from "../db/index.js";
 
+// GET
+
 const getCommissions = async (req, res) => {
   try {
     const { rows } = await query("SELECT * FROM COMMISSIONS;");
@@ -23,6 +25,23 @@ const getCommissionById = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+
+const getCommissionsWithUserId = async (req, res) => {
+  const id = Number(req.params.id);
+
+  try {
+    const { rows } = await query(
+      `SELECT * FROM COMMISSIONS WHERE creator_id = $1;`,
+      [id]
+    );
+    res.status(200).json(rows);
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ error: error.message });
+  }
+};
+
+// POST
 
 const createCommission = async (req, res) => {
   const {
@@ -56,6 +75,8 @@ const createCommission = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+
+// PUT
 
 const updateCommission = async (req, res) => {
   const id = Number(req.params.id);
@@ -103,6 +124,8 @@ const updateCommission = async (req, res) => {
   }
 };
 
+// DELETE
+
 const deleteCommission = async (req, res) => {
   const id = Number(req.params.id);
 
@@ -118,11 +141,10 @@ const deleteCommission = async (req, res) => {
   }
 };
 
-// TODO: add a function to get all commissions for a user with user ID
-
 export {
   getCommissions,
   getCommissionById,
+  getCommissionsWithUserId,
   createCommission,
   updateCommission,
   deleteCommission,
