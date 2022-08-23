@@ -1,32 +1,177 @@
 BEGIN;
 
     INSERT INTO users (
-      first_name, last_name, username, password, email, birthday, daily_reward, weekly_reward, monthly_reward, yearly_reward, max_commissions_day, max_commissions_week, max_commissions_month, max_commissions_year, points
+      first_name,
+      last_name,
+      username,
+      password,
+      email,
+      birthday,
+      daily_reward,
+      weekly_reward,
+      monthly_reward,
+      yearly_reward,
+      max_commissions_day,
+      max_commissions_week,
+      max_commissions_month,
+      max_commissions_year,
+      points,
+      admin
     ) VALUES (
-      'Alice', 'Fredrelein', 'fredreleinalice', 'pass', 'fredrelein@alice.com', '04/14/1990', 41, 52, 73, 99, 4, 20, 12, 18,16
+      'Alice',
+      'Fredrelein',
+      'fredreleinalice',
+      'pass',
+      'fredrelein@alice.com',
+      '04/14/1990',
+      35,
+      94,
+      65,
+      94,
+      58,
+      99,
+      26,
+      37,
+      3,
+      'false'
     );
-                
     INSERT INTO users (
-      first_name, last_name, username, password, email, birthday, daily_reward, weekly_reward, monthly_reward, yearly_reward, max_commissions_day, max_commissions_week, max_commissions_month, max_commissions_year, points
+      first_name,
+      last_name,
+      username,
+      password,
+      email,
+      birthday,
+      daily_reward,
+      weekly_reward,
+      monthly_reward,
+      yearly_reward,
+      max_commissions_day,
+      max_commissions_week,
+      max_commissions_month,
+      max_commissions_year,
+      points,
+      admin
     ) VALUES (
-      'Ben', 'Gates', 'gatesben', 'chicken231', 'gates@ben.com', NULL, 65, 45, 83, 11, 98, 100, 93, 91,10
+      'Ben',
+      'Gates',
+      'gatesben',
+      'chicken231',
+      'gates@ben.com',
+      NULL,
+      70,
+      9,
+      9,
+      67,
+      95,
+      57,
+      67,
+      40,
+      4,
+      'false'
     );
-                
     INSERT INTO users (
-      first_name, last_name, username, password, email, birthday, daily_reward, weekly_reward, monthly_reward, yearly_reward, max_commissions_day, max_commissions_week, max_commissions_month, max_commissions_year, points
+      first_name,
+      last_name,
+      username,
+      password,
+      email,
+      birthday,
+      daily_reward,
+      weekly_reward,
+      monthly_reward,
+      yearly_reward,
+      max_commissions_day,
+      max_commissions_week,
+      max_commissions_month,
+      max_commissions_year,
+      points,
+      admin
     ) VALUES (
-      'Chris', 'Hines', 'hineschris', 'sa0oqiwer0!!', 'hines@chris.com', '01/01/1980', 70, 5, 23, 50, 15, 35, 8, 91,1
+      'Chris',
+      'Hines',
+      'hineschris',
+      'sa0oqiwer0!!',
+      'hines@chris.com',
+      '01/01/1980',
+      30,
+      50,
+      2,
+      12,
+      70,
+      60,
+      55,
+      32,
+      6,
+      'false'
     );
-                
     INSERT INTO users (
-      first_name, last_name, username, password, email, birthday, daily_reward, weekly_reward, monthly_reward, yearly_reward, max_commissions_day, max_commissions_week, max_commissions_month, max_commissions_year, points
+      first_name,
+      last_name,
+      username,
+      password,
+      email,
+      birthday,
+      daily_reward,
+      weekly_reward,
+      monthly_reward,
+      yearly_reward,
+      max_commissions_day,
+      max_commissions_week,
+      max_commissions_month,
+      max_commissions_year,
+      points,
+      admin
     ) VALUES (
-      'Dennis', 'Irwin', 'irwindennis', 'dkko2wid2', 'irwin@dennis.com', '09/28/2002', 31, 5, 66, 47, 13, 82, 24, 31,10
+      'Dennis',
+      'Irwin',
+      'irwindennis',
+      'dkko2wid2',
+      'irwin@dennis.com',
+      '09/28/2002',
+      83,
+      12,
+      61,
+      5,
+      55,
+      36,
+      12,
+      3,
+      3,
+      'false'
     );
-                
     INSERT INTO users (
-      first_name, last_name, username, password, email, birthday, daily_reward, weekly_reward, monthly_reward, yearly_reward, max_commissions_day, max_commissions_week, max_commissions_month, max_commissions_year, points
+      first_name,
+      last_name,
+      username,
+      password,
+      email,
+      birthday,
+      daily_reward,
+      weekly_reward,
+      monthly_reward,
+      yearly_reward,
+      max_commissions_day,
+      max_commissions_week,
+      max_commissions_month,
+      max_commissions_year,
+      points,
+      admin
     ) VALUES (
-      'Erin', 'Jansen', 'jansenerin', '8008135', 'jansen@erin.com', '01/01/1980', 95, 30, 43, 72, 4, 41, 98, 92,16
-    );
-                COMMIT;
+      'Erin',
+      'Jansen',
+      'jansenerin',
+      '8008135',
+      'jansen@erin.com',
+      '01/01/1980',
+      58,
+      80,
+      68,
+      36,
+      9,
+      28,
+      14,
+      52,
+      6,
+      'false'
+    );COMMIT;

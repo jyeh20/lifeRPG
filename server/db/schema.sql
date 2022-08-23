@@ -19,6 +19,7 @@ CREATE TABLE users (
   max_commissions_month SMALLINT NOT NULL,
   max_commissions_year SMALLINT NOT NULL,
   points INTEGER NOT NULL,
+  admin BOOLEAN NOT NULL,
   UNIQUE (username),
   UNIQUE (id),
   UNIQUE (email),

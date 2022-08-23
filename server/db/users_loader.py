@@ -50,14 +50,44 @@ for i in range(len(first_names)):
   max_commissions_month = get_reward()
   max_commissions_year = get_reward()
   points = get_reward() // 5
+  admin = "false"
 
   script.append(f"""
     INSERT INTO users (
-      first_name, last_name, username, password, email, birthday, daily_reward, weekly_reward, monthly_reward, yearly_reward, max_commissions_day, max_commissions_week, max_commissions_month, max_commissions_year, points
+      first_name,
+      last_name,
+      username,
+      password,
+      email,
+      birthday,
+      daily_reward,
+      weekly_reward,
+      monthly_reward,
+      yearly_reward,
+      max_commissions_day,
+      max_commissions_week,
+      max_commissions_month,
+      max_commissions_year,
+      points,
+      admin
     ) VALUES (
-      {first_name}, {last_name}, '{username}', {password}, '{email}', {birthday}, {daily_reward}, {weekly_reward}, {monthly_reward}, {yearly_reward}, {max_commissions_day}, {max_commissions_week}, {max_commissions_month}, {max_commissions_year},{points}
-    );
-                """)
+      {first_name},
+      {last_name},
+      '{username}',
+      {password},
+      '{email}',
+      {birthday},
+      {daily_reward},
+      {weekly_reward},
+      {monthly_reward},
+      {yearly_reward},
+      {max_commissions_day},
+      {max_commissions_week},
+      {max_commissions_month},
+      {max_commissions_year},
+      {points},
+      '{admin}'
+    );""")
 
 with open(FILE, 'w+') as f:
   f.writelines(script)
