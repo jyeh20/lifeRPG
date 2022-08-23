@@ -16,6 +16,7 @@ class User {
     this.maxCommissionsMonth = input.maxCommissionsMonth;
     this.maxCommissionsYear = input.maxCommissionsYear;
     this.points = input.points;
+    this.admin = input.admin;
   }
 
   getUser() {
@@ -36,6 +37,7 @@ class User {
       maxCommissionsMonth: this.maxCommissionsMonth || 3,
       maxCommissionsYear: this.maxCommissionsYear || 3,
       points: this.points || 0,
+      admin: this.admin,
     };
   }
 
@@ -57,7 +59,12 @@ class User {
       this.maxCommissionsMonth || 3,
       this.maxCommissionsYear || 3,
       this.points || 0,
-    ];
+      this.admin,
+    ].filter((prop) => prop !== undefined);
+  }
+
+  isAdmin() {
+    return this.admin;
   }
 }
 
