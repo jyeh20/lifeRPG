@@ -19,11 +19,14 @@ printf "Goals script written!\n"
 
 printf "\nLoading mock data...\n"
 
+printf "\nWhich Database do you want to load? [ lifeRPG, liferpg_test ] "
+read db
+
 printf "\nLoading users...\n"
-cat ../server/db/users.sql | psql -d lifeRPG -U addicted2salt
+cat ../server/db/users.sql | psql -d $db -U addicted2salt
 printf "\nLoading commissions...\n"
-cat ../server/db/commissions.sql | psql -d lifeRPG -U addicted2salt
+cat ../server/db/commissions.sql | psql -d $db -U addicted2salt
 printf "\nLoading goals...\n"
-cat ../server/db/goals.sql | psql -d lifeRPG -U addicted2salt
+cat ../server/db/goals.sql | psql -d $db -U addicted2salt
 
 printf "\nMock data loaded!\n"
