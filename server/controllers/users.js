@@ -23,6 +23,10 @@ switch (nodeEnv) {
  * @param {object} response - The response object
  */
 const getUsers = async (req, res) => {
+  const token = verifyToken(req.headers.authorization);
+  if (!token.admin) {
+    res.status(403).json({ error: "This account is not authorized" });
+  }
   try {
     const { rows } = await query("SELECT * FROM USERS;");
     res.status(200).json(rows);
@@ -33,10 +37,17 @@ const getUsers = async (req, res) => {
 };
 
 const getUserById = async (req, res) => {
-  const id = Number(req.params.id);
+  const { id } = verifyToken(req.headers.authorization);
+
+  if (!id) {
+    res.status(403).json({ error: "This account is not authorized" });
+  }
 
   try {
     const { rows } = await query("SELECT * FROM USERS WHERE id = $1;", [id]);
+    if (rows.length === 0) {
+      res.status(404).json({ error: "User does not exist" });
+    }
     res.status(200).json(rows);
   } catch (error) {
     console.log(error);
@@ -45,7 +56,11 @@ const getUserById = async (req, res) => {
 };
 
 const getUserByUsername = async (req, res) => {
-  const username = req.params.username;
+  const { username } = verifyToken(req.headers.authorization);
+
+  if (!username) {
+    res.status(403).json({ error: "This account is not authorized" });
+  }
 
   try {
     const { rows } = await query("SELECT * FROM USERS WHERE username = $1;", [
@@ -63,9 +78,10 @@ const getUserByUsername = async (req, res) => {
  * @param {object} request - The request object
  * @param {object} response - The response object
  */
-// TODO: make this a transaction
 const createUser = async (req, res) => {
   const user = new User(req.body);
+
+  const client = await pool.connect();
 
   try {
     user.password = await bcrypt.hash(
@@ -73,8 +89,8 @@ const createUser = async (req, res) => {
       Number(process.env.SALT_ROUNDS)
     );
 
-    const { rows } = await query(
-      `
+    await client.query("BEGIN;");
+    const query = `
       INSERT INTO USERS (
         first_name,
         last_name,
@@ -90,25 +106,27 @@ const createUser = async (req, res) => {
         max_commissions_week,
         max_commissions_month,
         max_commissions_year,
-        points
+        points,
+        admin
       ) VALUES (
-        $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15
+        $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16
       ) RETURNING *;
-      `,
-      user.getUserAsArray().filter((prop) => prop !== undefined)
-    );
+      `;
+    const values = user.getUserAsArray().filter((prop) => prop !== undefined);
 
-    const token = generateToken({ id: rows[0].id }, "1hr");
-    const decoded = verifyToken(token);
+    const { rows } = await client.query(query, values);
 
-    console.log("Token: ", token);
-    console.log("Decoded: ", decoded);
+    const token = generateToken({ ...user.getUser(), id: rows[0].id });
 
     console.log(`Successfully created user with id: ${rows[0].id}`);
+    await client.query("COMMIT;");
     res.status(200).json(token);
   } catch (error) {
+    await client.query("ROLLBACK;");
     console.log(error);
     res.status(500).json({ errorCode: error.code, error: error.message });
+  } finally {
+    client.release();
   }
 };
 
@@ -137,7 +155,8 @@ const getUserWithLogin = async (req, res) => {
       // try login
       const comparedPassword = await bcrypt.compare(password, user.password);
       if (comparedPassword) {
-        res.status(200).json(user);
+        const token = generateToken(user);
+        res.status(200).json(token);
       } else {
         res.status(400).json({ error: "Invalid password" });
       }
@@ -151,12 +170,14 @@ const getUserWithLogin = async (req, res) => {
 };
 
 const updateUser = async (req, res) => {
-  const id = Number(req.params.id);
+  const { id } = verifyToken(req.headers.authorization);
   const updatedUser = new User(req.body);
 
+  const client = await pool.connect();
   try {
-    const { rows } = await query(
-      `
+    await client.query("BEGIN;");
+
+    const query = `
       UPDATE USERS SET
         first_name = $1,
         last_name = $2,
@@ -174,29 +195,119 @@ const updateUser = async (req, res) => {
         max_commissions_year = $14,
         points = $15
       WHERE id = $16 RETURNING *;
-      `,
-      [...updatedUser.getUserAsArray(), id]
-    );
+      `;
+
+    const values = [...updatedUser.getUserAsArray().slice(0, 1), id];
+    const { rows } = await client.query(query, values);
+    await client.query("COMMIT;");
 
     console.log(`Successfully updated user ${id}`);
-    res.status(200).json(rows);
+    res.status(200).json(rows[0]);
   } catch (error) {
+    await client.query("ROLLBACK;");
     console.log(error);
     res.status(500).json({ error: error.message });
+  } finally {
+    client.release();
   }
 };
 
-const deleteUser = async (request, response) => {
-  const id = Number(request.params.id);
+const deleteUser = async (req, res) => {
+  const { id } = verifyToken(req.headers.authorization);
+
+  const client = await pool.connect();
 
   try {
-    const { rows } = await query("DELETE FROM USERS WHERE id=$1 RETURNING *;", [
-      id,
-    ]);
-    response.status(200).json(`User deleted with ID: ${id}`);
+    await client.query("BEGIN;");
+
+    const query = `DELETE FROM USERS WHERE id = $1 RETURNING *;`;
+    const values = [id];
+
+    const { rows } = await client.query(query, values);
+    res.status(200).json(`User deleted with ID: ${id}`);
   } catch (error) {
+    await client.query("ROLLBACK;");
     console.log(error);
-    response.status(500).json({ error: error.message });
+    res.status(500).json({ error: error.message });
+  } finally {
+    client.release();
+  }
+};
+
+const updateUserAsAdmin = async (req, res) => {
+  const id = Number(req.params.id);
+  const { admin } = verifyToken(req.headers.authorization);
+
+  if (!admin) {
+    res.status(403).json({ error: "You are not authorized to do this" });
+    return;
+  }
+
+  const updatedUser = new User(req.body);
+
+  const client = await pool.connect();
+  try {
+    await client.query("BEGIN;");
+
+    const query = `
+      UPDATE USERS SET
+        first_name = $1,
+        last_name = $2,
+        username = $3,
+        birthday = $4,
+        email = $5,
+        password = $6,
+        daily_reward = $7,
+        weekly_reward = $8,
+        monthly_reward = $9,
+        yearly_reward = $10,
+        max_commissions_day = $11,
+        max_commissions_week = $12,
+        max_commissions_month = $13,
+        max_commissions_year = $14,
+        points = $15
+      WHERE id = $16 RETURNING *;
+      `;
+
+    const values = [...updatedUser.getUserAsArray(), id];
+    const { rows } = await client.query(query, values);
+    await client.query("COMMIT;");
+
+    console.log(`Successfully updated user ${id}`);
+    res.status(200).json(rows[0]);
+  } catch (error) {
+    await client.query("ROLLBACK;");
+    console.log(error);
+    res.status(500).json({ error: error.message });
+  } finally {
+    client.release();
+  }
+};
+
+const deleteUserAsAdmin = async (req, res) => {
+  const id = Number(req.params.id);
+  const { admin } = verifyToken(req.headers.authorization);
+
+  if (!admin) {
+    res.status(403).json({ error: "You are not authorized to do this" });
+  }
+
+  const client = await pool.connect();
+
+  try {
+    await client.query("BEGIN;");
+
+    const query = `DELETE FROM USERS WHERE id = $1 RETURNING *;`;
+    const values = [id];
+
+    const { rows } = await client.query(query, values);
+    res.status(200).json(`User deleted with ID: ${id}`);
+  } catch (error) {
+    await client.query("ROLLBACK;");
+    console.log(error);
+    res.status(500).json({ error: error.message });
+  } finally {
+    client.release();
   }
 };
 
