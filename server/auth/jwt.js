@@ -14,8 +14,12 @@ switch (nodeEnv) {
     dotenv.config({ path: "../config/config.dev.env" });
 }
 
-const generateToken = (user, expiresIn) => {
-  return jwt.sign(user, process.env.JWT_SECRET, { expiresIn });
+const generateToken = (user, expiresIn = "1hr") => {
+  return jwt.sign(
+    { id: user.id, username: user.username, admin: user?.admin },
+    process.env.JWT_SECRET,
+    { expiresIn }
+  );
 };
 
 const verifyToken = (token) => {
