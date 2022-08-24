@@ -26,17 +26,20 @@ const getUsers = async (req, res) => {
   const token = verifyToken(req.headers.authorization);
   if (!token.admin) {
     res.status(403).json({ error: "This account is not authorized" });
+    return;
   }
   try {
     const { rows } = await query("SELECT * FROM USERS;");
     res.status(200).json(rows);
+    return;
   } catch (error) {
     console.log(error);
     res.status(500).json({ error: error.message });
+    return;
   }
 };
 
-const getUserById = async (req, res) => {
+const getSelfById = async (req, res) => {
   const { id } = verifyToken(req.headers.authorization);
 
   if (!id) {
@@ -48,14 +51,14 @@ const getUserById = async (req, res) => {
     if (rows.length === 0) {
       res.status(404).json({ error: "User does not exist" });
     }
-    res.status(200).json(rows);
+    res.status(200).json(rows[0]);
   } catch (error) {
     console.log(error);
     res.status(500).json({ error: error.message });
   }
 };
 
-const getUserByUsername = async (req, res) => {
+const getSelfByUsername = async (req, res) => {
   const { username } = verifyToken(req.headers.authorization);
 
   if (!username) {
@@ -66,7 +69,7 @@ const getUserByUsername = async (req, res) => {
     const { rows } = await query("SELECT * FROM USERS WHERE username = $1;", [
       username,
     ]);
-    res.status(200).json(rows);
+    res.status(200).json(rows[0]);
   } catch (error) {
     console.log(error);
     res.status(500).json({ error: error.message });
@@ -79,7 +82,19 @@ const getUserByUsername = async (req, res) => {
  * @param {object} response - The response object
  */
 const createUser = async (req, res) => {
-  const user = new User(req.body);
+  let user = {};
+  try {
+    user = new User(req.body);
+  } catch (error) {
+    if (error.code === 400) {
+      console.log(error);
+      res.status(400).json({ error: error.message });
+      return;
+    } else {
+      res.status(500).json({ error: error.message });
+      return;
+    }
+  }
 
   const client = await pool.connect();
 
@@ -120,48 +135,41 @@ const createUser = async (req, res) => {
 
     console.log(`Successfully created user with id: ${rows[0].id}`);
     await client.query("COMMIT;");
-    res.status(200).json(token);
+    res.status(201).json(token);
   } catch (error) {
     await client.query("ROLLBACK;");
-    console.log(error);
     res.status(500).json({ errorCode: error.code, error: error.message });
   } finally {
     client.release();
   }
 };
 
-const getUserWithLogin = async (req, res) => {
-  const { usernameOrEmail, password } = req.body;
+const getUserWithEmailLogin = async (req, res) => {
+  const { email, password } = req.body;
   let user = undefined;
 
   try {
-    // check if input is a username
-    const { rows } = await query(`SELECT * FROM USERS WHERE username = $1;`, [
-      usernameOrEmail,
+    const { rows } = await query("SELECT * FROM USERS WHERE email = $1;", [
+      email,
     ]);
     if (rows.length !== 0) {
       user = rows;
-    } else {
-      const { rows } = await query("SELECT * FROM USERS WHERE email = $1;", [
-        usernameOrEmail,
-      ]);
-      if (rows.length !== 0) {
-        user = rows;
-      }
     }
 
     if (user) {
       user = user[0];
       // try login
-      const comparedPassword = await bcrypt.compare(password, user.password);
-      if (comparedPassword) {
+      const passwordIsValid = await bcrypt.compare(password, user.password);
+      if (passwordIsValid) {
         const token = generateToken(user);
         res.status(200).json(token);
+        return;
       } else {
-        res.status(400).json({ error: "Invalid password" });
+        res.status(401).json({ error: "Invalid password" });
+        return;
       }
     } else {
-      res.status(400).json({ error: "Invalid username or email" });
+      res.status(401).json({ error: "Invalid email" });
     }
   } catch (error) {
     console.log(error);
@@ -169,10 +177,53 @@ const getUserWithLogin = async (req, res) => {
   }
 };
 
-const updateUser = async (req, res) => {
-  const { id } = verifyToken(req.headers.authorization);
-  const updatedUser = new User(req.body);
+const getUserWithUsernameLogin = async (req, res) => {
+  const { username, password } = req.body;
+  let user = undefined;
 
+  try {
+    // check if input is a username
+    const { rows } = await query(`SELECT * FROM USERS WHERE username = $1;`, [
+      username,
+    ]);
+    if (rows.length !== 0) {
+      user = rows;
+    }
+
+    if (user) {
+      user = user[0];
+      // try login
+      const passwordIsValid = await bcrypt.compare(password, user.password);
+      if (passwordIsValid) {
+        const token = generateToken(user);
+        res.status(200).json(token);
+        return;
+      } else {
+        res.status(401).json({ error: "Invalid password" });
+        return;
+      }
+    } else {
+      res.status(401).json({ error: "Invalid username" });
+      return;
+    }
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ error: error.message });
+  }
+};
+
+const updateSelf = async (req, res) => {
+  const { id } = verifyToken(req.headers.authorization);
+  let updatedUser = {};
+  try {
+    updatedUser = new User(req.body);
+  } catch (error) {
+    if (error.code === 400) {
+      res.status(400).json({ error: error.message });
+    } else {
+      res.status(500).json({ error: error.message });
+    }
+  }
   const client = await pool.connect();
   try {
     await client.query("BEGIN;");
@@ -212,7 +263,7 @@ const updateUser = async (req, res) => {
   }
 };
 
-const deleteUser = async (req, res) => {
+const deleteSelf = async (req, res) => {
   const { id } = verifyToken(req.headers.authorization);
 
   const client = await pool.connect();
@@ -234,7 +285,30 @@ const deleteUser = async (req, res) => {
   }
 };
 
-const updateUserAsAdmin = async (req, res) => {
+// Admin
+
+const getUserById = async (req, res) => {
+  const { admin } = verifyToken(req.headers.authorization);
+
+  if (!admin) {
+    res.status(403).json({ error: "You are not authorized to do this" });
+    return;
+  }
+
+  const { id } = req.params;
+  try {
+    const { rows } = await query("SELECT * FROM USERS WHERE id = $1;", [id]);
+    if (rows.length === 0) {
+      res.status(404).json({ error: "User does not exist" });
+    }
+    res.status(200).json(rows);
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ error: error.message });
+  }
+};
+
+const updateUser = async (req, res) => {
   const id = Number(req.params.id);
   const { admin } = verifyToken(req.headers.authorization);
 
@@ -243,7 +317,16 @@ const updateUserAsAdmin = async (req, res) => {
     return;
   }
 
-  const updatedUser = new User(req.body);
+  let updatedUser = {};
+  try {
+    updatedUser = new User(req.body);
+  } catch (error) {
+    if (error.code === 400) {
+      res.status(400).json({ error: error.message });
+    } else {
+      res.status(500).json({ error: error.message });
+    }
+  }
 
   const client = await pool.connect();
   try {
@@ -284,7 +367,7 @@ const updateUserAsAdmin = async (req, res) => {
   }
 };
 
-const deleteUserAsAdmin = async (req, res) => {
+const deleteUser = async (req, res) => {
   const id = Number(req.params.id);
   const { admin } = verifyToken(req.headers.authorization);
 
@@ -313,10 +396,14 @@ const deleteUserAsAdmin = async (req, res) => {
 
 export {
   getUsers,
-  getUserById,
-  getUserByUsername,
+  getSelfById,
+  getSelfByUsername,
   createUser,
-  getUserWithLogin,
+  getUserWithEmailLogin,
+  getUserWithUsernameLogin,
+  updateSelf,
+  deleteSelf,
+  getUserById,
   updateUser,
   deleteUser,
 };
