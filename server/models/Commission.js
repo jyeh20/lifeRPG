@@ -1,26 +1,26 @@
 class Commission {
   constructor(input) {
-    this.creatorId = input.creatorId;
+    this.creator_id = input.creator_id;
     this.name = input.name;
     this.description = input.description;
-    this.freqWeek = input.freqWeek;
-    this.freqMonth = input.freqMonth;
-    this.freqYear = input.freqYear;
+    this.freq_week = input.freq_week;
+    this.freq_month = input.freq_month;
+    this.freq_year = input.freq_year;
     this.difficulty = input.difficulty;
-    this.numTimesCompleted = input.numTimesCompleted;
+    this.num_times_completed = input.num_times_completed;
     this.completed = input.completed;
   }
 
   getCommissionAsArray() {
     return [
-      this.creatorId,
+      this.creator_id,
       this.name,
       this.description,
-      this.freqWeek || 0,
-      this.freqMonth || 0,
-      this.freqYear || 0,
+      this.freq_week || 0,
+      this.freq_month || 0,
+      this.freq_year || 0,
       this.difficulty || 1,
-      this.numTimesCompleted || 0,
+      this.num_times_completed || 0,
       this.completed || 0,
     ];
   }

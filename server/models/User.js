@@ -1,42 +1,56 @@
+import e from "express";
+
 class User {
   constructor(input) {
     this.id = input.id;
-    this.firstName = input.firstName;
-    this.lastName = input.lastName;
+    this.first_name = input.first_name;
+    this.last_name = input.last_name;
     this.username = input.username;
-    this.birthday = input.birthday;
+    this.birthday = input.birthday || null;
     this.email = input.email;
     this.password = input.password;
-    this.dailyReward = input.dailyReward;
-    this.weeklyReward = input.weeklyReward;
-    this.monthlyReward = input.monthlyReward;
-    this.yearlyReward = input.yearlyReward;
-    this.maxCommissionsDay = input.maxCommissionsDay;
-    this.maxCommissionsWeek = input.maxCommissionsWeek;
-    this.maxCommissionsMonth = input.maxCommissionsMonth;
-    this.maxCommissionsYear = input.maxCommissionsYear;
-    this.points = input.points;
-    this.admin = input.admin;
+    this.daily_reward = input.daily_reward || 5;
+    this.weekly_reward = input.weekly_reward || 5;
+    this.monthly_reward = input.monthly_reward || 5;
+    this.yearly_reward = input.yearly_reward || 5;
+    this.max_commissions_day = input.max_commissions_day || 5;
+    this.max_commissions_week = input.max_commissions_week || 5;
+    this.max_commissions_month = input.max_commissions_month || 3;
+    this.max_commissions_year = input.max_commissions_year || 3;
+    this.points = input.points || 0;
+    this.admin = input.admin || false;
+
+    if (
+      !this.first_name ||
+      !this.last_name ||
+      !this.username ||
+      !this.email ||
+      !this.password
+    ) {
+      const e = new Error("Missing required fields");
+      e.code = 400;
+      throw e;
+    }
   }
 
   getUser() {
     return {
       id: this.id,
-      firstName: this.firstName,
-      lastName: this.lastName,
+      first_name: this.first_name,
+      last_name: this.last_name,
       username: this.username,
-      birthday: this.birthday || null,
+      birthday: this.birthday,
       email: this.email,
       password: this.password,
-      dailyReward: this.dailyReward || 5,
-      weeklyReward: this.weeklyReward || 5,
-      monthlyReward: this.monthlyReward || 5,
-      yearlyReward: this.yearlyReward || 5,
-      maxCommissionsDay: this.maxCommissionsDay || 5,
-      maxCommissionsWeek: this.maxCommissionsWeek || 3,
-      maxCommissionsMonth: this.maxCommissionsMonth || 3,
-      maxCommissionsYear: this.maxCommissionsYear || 3,
-      points: this.points || 0,
+      daily_reward: this.daily_reward,
+      weekly_reward: this.weekly_reward,
+      monthly_reward: this.monthly_reward,
+      yearly_reward: this.yearly_reward,
+      max_commissions_day: this.max_commissions_day,
+      max_commissions_week: this.max_commissions_week,
+      max_commissions_month: this.max_commissions_month,
+      max_commissions_year: this.max_commissions_year,
+      points: this.points,
       admin: this.admin,
     };
   }
@@ -44,21 +58,21 @@ class User {
   getUserAsArray() {
     return [
       this.id,
-      this.firstName,
-      this.lastName,
+      this.first_name,
+      this.last_name,
       this.username,
-      this.birthday || null,
+      this.birthday,
       this.email,
       this.password,
-      this.dailyReward || 5,
-      this.weeklyReward || 5,
-      this.monthlyReward || 5,
-      this.yearlyReward || 5,
-      this.maxCommissionsDay || 5,
-      this.maxCommissionsWeek || 3,
-      this.maxCommissionsMonth || 3,
-      this.maxCommissionsYear || 3,
-      this.points || 0,
+      this.daily_reward,
+      this.weekly_reward,
+      this.monthly_reward,
+      this.yearly_reward,
+      this.max_commissions_day,
+      this.max_commissions_week,
+      this.max_commissions_month,
+      this.max_commissions_year,
+      this.points,
       this.admin,
     ].filter((prop) => prop !== undefined);
   }

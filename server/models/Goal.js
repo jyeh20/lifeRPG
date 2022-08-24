@@ -1,13 +1,13 @@
 class Goal {
   constructor(input) {
-    this.creatorId = input.creatorId;
+    this.creator_id = input.creator_id;
     this.name = input.name;
     this.description = input.description;
     this.reward = input.reward;
   }
 
   getGoalAsArray() {
-    return [this.creatorId, this.name, this.description, this.reward || 2];
+    return [this.creator_id, this.name, this.description, this.reward || 2];
   }
 }
 
