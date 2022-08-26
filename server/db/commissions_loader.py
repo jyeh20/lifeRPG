@@ -23,7 +23,6 @@ def difficulty():
 script = ["BEGIN;"]
 
 for i in range(1, 40):
-  freqs = get_frequencies()
   script.append(f"""
                 INSERT INTO commissions (
                   creator_id, name, description, freq_type, freq, difficulty, num_times_completed, completed) VALUES (
