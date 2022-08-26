@@ -10,7 +10,7 @@
     }
   },
   "scripts": {
-    "test": "cross-env NODE_ENV=test jest --detectOpenHandles"
+    "test": "cross-env NODE_ENV=test jest --coverage --detectOpenHandles --coverageDirectory='coverage'"
   },
   "keywords": [],
   "author": "Jonathan Yeh",

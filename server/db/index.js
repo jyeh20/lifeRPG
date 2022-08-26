@@ -20,13 +20,23 @@ switch (nodeEnv) {
     dotenv.config({ path: "../config/config.dev.env" });
 }
 
-const pool = new Pool({
+let pool = new Pool({
   user: process.env.DB_USER,
   host: process.env.HOST,
   database: process.env.DB,
   password: process.env.DB_PASS,
   port: process.env.DB_PORT,
 });
+
+const getNewPool = async () => {
+  pool = new Pool({
+    user: process.env.DB_USER,
+    host: process.env.HOST,
+    database: process.env.DB,
+    password: process.env.DB_PASS,
+    port: process.env.DB_PORT,
+  });
+};
 
 const query = async (sql, params) => {
   const start = Date.now();
@@ -64,4 +74,4 @@ const getClient = async () => {
   return client;
 };
 
-export { pool, query, getClient };
+export { pool, getNewPool, query, getClient };

@@ -28,7 +28,22 @@ class User {
       !this.password
     ) {
       const e = new Error("Missing required fields");
-      e.code = 400;
+      e.code = 403;
+      throw e;
+    }
+
+    if (
+      this.daily_reward < 0 ||
+      this.weekly_reward < 0 ||
+      this.monthly_reward < 0 ||
+      this.yearly_reward < 0 ||
+      this.max_commissions_day < 0 ||
+      this.max_commissions_week < 0 ||
+      this.max_commissions_month < 0 ||
+      this.max_commissions_year < 0
+    ) {
+      const e = new Error("Reward cannot be negative");
+      e.code = 403;
       throw e;
     }
   }
@@ -75,10 +90,6 @@ class User {
       this.points,
       this.admin,
     ].filter((prop) => prop !== undefined);
-  }
-
-  isAdmin() {
-    return this.admin;
   }
 }
 

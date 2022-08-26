@@ -4,8 +4,10 @@ import { User } from "../models/index.js";
 import { generateToken, verifyToken } from "../auth/jwt.js";
 import bcrypt from "bcrypt";
 
+/* istanbul ignore next */
 const nodeEnv = process.env.NODE_ENV || "development";
 
+/* istanbul ignore next */
 switch (nodeEnv) {
   case "production":
     dotenv.config({ path: "../config/config.prod.env" });
@@ -30,48 +32,65 @@ const getUsers = async (req, res) => {
   }
   try {
     const { rows } = await query("SELECT * FROM USERS;");
+    if (rows.length === 0) {
+      throw error;
+    }
     res.status(200).json(rows);
     return;
   } catch (error) {
     console.log(error);
-    res.status(500).json({ error: error.message });
+    res.status(404).json({ error: "No users in table" });
     return;
   }
 };
 
 const getSelfById = async (req, res) => {
-  const { id } = verifyToken(req.headers.authorization);
-
-  if (!id) {
-    res.status(403).json({ error: "This account is not authorized" });
-  }
-
   try {
+    const token = verifyToken(req.headers.authorization);
+    const id = token.id;
+
+    if (!id) {
+      res.status(401).json({ error: "You must be logged in" });
+      return;
+    }
+
     const { rows } = await query("SELECT * FROM USERS WHERE id = $1;", [id]);
     if (rows.length === 0) {
       res.status(404).json({ error: "User does not exist" });
+      return;
+    }
+    if (token.username != rows[0].username) {
+      res
+        .status(403)
+        .json({ error: "You do not have permission to view this" });
+      return;
     }
     res.status(200).json(rows[0]);
   } catch (error) {
     console.log(error);
+    if (error.message === "jwt must be provided") {
+      res.status(401).json({ error: error.message });
+      return;
+    }
     res.status(500).json({ error: error.message });
   }
 };
 
 const getSelfByUsername = async (req, res) => {
-  const { username } = verifyToken(req.headers.authorization);
-
-  if (!username) {
-    res.status(403).json({ error: "This account is not authorized" });
-  }
-
   try {
+    const token = verifyToken(req.headers.authorization);
+    const username = token.username;
+
     const { rows } = await query("SELECT * FROM USERS WHERE username = $1;", [
       username,
     ]);
     res.status(200).json(rows[0]);
   } catch (error) {
     console.log(error);
+    if (error.message === "jwt must be provided") {
+      res.status(401).json({ error: error.message });
+      return;
+    }
     res.status(500).json({ error: error.message });
   }
 };
@@ -86,14 +105,31 @@ const createUser = async (req, res) => {
   try {
     user = new User(req.body);
   } catch (error) {
-    if (error.code === 400) {
-      console.log(error);
-      res.status(400).json({ error: error.message });
-      return;
-    } else {
-      res.status(500).json({ error: error.message });
+    console.log(error);
+    res.status(error.code).json({ error: error.message });
+    return;
+  }
+
+  try {
+    const preQuery = "SELECT * FROM USERS WHERE username = $1 OR email = $2;";
+    const preValues = [user.username, user.email];
+    const preQueryRes = await query(preQuery, preValues);
+    if (preQueryRes.rows.length != 0) {
+      const e = new Error("Duplicate entry");
+      e.code = 409;
+      throw e;
+    }
+  } catch (error) {
+    console.log(error);
+    /* istanbul ignore else */
+    if (error.code === 409) {
+      res.status(409).json({ error: "Duplicate entry" });
       return;
     }
+    /* istanbul ignore next */
+    res.status(500).json({ error: error.message });
+    /* istanbul ignore next */
+    return;
   }
 
   const client = await pool.connect();
@@ -138,6 +174,12 @@ const createUser = async (req, res) => {
     res.status(201).json(token);
   } catch (error) {
     await client.query("ROLLBACK;");
+    /* istanbul ignore else */
+    if (error.message.includes("is out of range for type")) {
+      res.status(403).json({ error: "Invalid input" });
+      return;
+    }
+    /* istanbul ignore next */
     res.status(500).json({ errorCode: error.code, error: error.message });
   } finally {
     client.release();
@@ -172,7 +214,9 @@ const getUserWithEmailLogin = async (req, res) => {
       res.status(401).json({ error: "Invalid email" });
     }
   } catch (error) {
+    /* istanbul ignore next */
     console.log(error);
+    /* istanbul ignore next */
     res.status(500).json({ error: error.message });
   }
 };
@@ -207,22 +251,50 @@ const getUserWithUsernameLogin = async (req, res) => {
       return;
     }
   } catch (error) {
+    /* istanbul ignore next */
     console.log(error);
+    /* istanbul ignore next */
     res.status(500).json({ error: error.message });
   }
 };
 
 const updateSelf = async (req, res) => {
-  const { id } = verifyToken(req.headers.authorization);
+  let jwt = undefined;
+  let token = undefined;
+  try {
+    jwt = req.headers.authorization;
+    token = verifyToken(jwt);
+  } catch (error) {
+    console.log(error);
+    res.status(401).json({ error: error.message });
+    return;
+  }
   let updatedUser = {};
   try {
     updatedUser = new User(req.body);
   } catch (error) {
-    if (error.code === 400) {
-      res.status(400).json({ error: error.message });
-    } else {
-      res.status(500).json({ error: error.message });
+    /* istanbul ignore else */
+    if (error.code === 403) {
+      res.status(403).json({ error: error.message });
+      return;
     }
+    /* istanbul ignore next */
+    res.status(500).json({ error: error.message });
+  }
+
+  try {
+    await getUserExists(updatedUser, token.id);
+  } catch (error) {
+    console.log(error);
+    /* istanbul ignore else */
+    if (error.code === 409) {
+      res.status(409).json({ error: "Duplicate entry" });
+      return;
+    }
+    /* istanbul ignore next */
+    res.status(500).json({ error: error.message });
+    /* istanbul ignore next */
+    return;
   }
   const client = await pool.connect();
   try {
@@ -248,15 +320,23 @@ const updateSelf = async (req, res) => {
       WHERE id = $16 RETURNING *;
       `;
 
-    const values = [...updatedUser.getUserAsArray().slice(0, 1), id];
+    const id = token.id;
+    const values = [...updatedUser.getUserAsArray().slice(1, -1), id];
+    console.log(values);
     const { rows } = await client.query(query, values);
     await client.query("COMMIT;");
 
     console.log(`Successfully updated user ${id}`);
-    res.status(200).json(rows[0]);
+    res.status(200).json(jwt);
   } catch (error) {
     await client.query("ROLLBACK;");
     console.log(error);
+    /* istanbul ignore else */
+    if (error.message.includes("out of range")) {
+      res.status(403).json({ error: "Invalid input is out of range" });
+      return;
+    }
+    /* istanbul ignore next */
     res.status(500).json({ error: error.message });
   } finally {
     client.release();
@@ -264,21 +344,28 @@ const updateSelf = async (req, res) => {
 };
 
 const deleteSelf = async (req, res) => {
-  const { id } = verifyToken(req.headers.authorization);
-
   const client = await pool.connect();
 
   try {
+    const { id } = verifyToken(req.headers.authorization);
+
     await client.query("BEGIN;");
 
     const query = `DELETE FROM USERS WHERE id = $1 RETURNING *;`;
     const values = [id];
 
     const { rows } = await client.query(query, values);
-    res.status(200).json(`User deleted with ID: ${id}`);
+
+    client.query("COMMIT;");
+    res.status(200).json(rows[0].id);
   } catch (error) {
     await client.query("ROLLBACK;");
-    console.log(error);
+    /* istanbul ignore else */
+    if (error.message === "jwt must be provided") {
+      res.status(401).json({ error: error.message });
+      return;
+    }
+    /* istanbul ignore next */
     res.status(500).json({ error: error.message });
   } finally {
     client.release();
@@ -287,10 +374,20 @@ const deleteSelf = async (req, res) => {
 
 // Admin
 
+/**
+ * Returns a user json object
+ */
 const getUserById = async (req, res) => {
-  const { admin } = verifyToken(req.headers.authorization);
+  let admin = undefined;
+  try {
+    admin = verifyToken(req.headers.authorization);
+  } catch (error) {
+    console.log(error);
+    res.status(401).json({ error: error.message });
+    return;
+  }
 
-  if (!admin) {
+  if (!admin.admin) {
     res.status(403).json({ error: "You are not authorized to do this" });
     return;
   }
@@ -301,7 +398,7 @@ const getUserById = async (req, res) => {
     if (rows.length === 0) {
       res.status(404).json({ error: "User does not exist" });
     }
-    res.status(200).json(rows);
+    res.status(200).json(rows[0]);
   } catch (error) {
     console.log(error);
     res.status(500).json({ error: error.message });
@@ -310,9 +407,16 @@ const getUserById = async (req, res) => {
 
 const updateUser = async (req, res) => {
   const id = Number(req.params.id);
-  const { admin } = verifyToken(req.headers.authorization);
+  let admin = undefined;
+  try {
+    admin = verifyToken(req.headers.authorization);
+  } catch (error) {
+    console.log(error);
+    res.status(401).json({ error: error.message });
+    return;
+  }
 
-  if (!admin) {
+  if (!admin.admin) {
     res.status(403).json({ error: "You are not authorized to do this" });
     return;
   }
@@ -321,11 +425,26 @@ const updateUser = async (req, res) => {
   try {
     updatedUser = new User(req.body);
   } catch (error) {
-    if (error.code === 400) {
-      res.status(400).json({ error: error.message });
+    if (error.code === 403) {
+      res.status(403).json({ error: error.message });
     } else {
       res.status(500).json({ error: error.message });
     }
+  }
+
+  try {
+    await getUserExists(updatedUser, id);
+  } catch (error) {
+    console.log(error);
+    if (error.code === 409) {
+      res.status(409).json({ error: "Duplicate entry" });
+      return;
+    }
+    if (error.code === 404) {
+      res.status(error.code).json({ error: error.message });
+      return;
+    }
+    res.status(500).json({ error: error.message });
   }
 
   const client = await pool.connect();
@@ -348,11 +467,12 @@ const updateUser = async (req, res) => {
         max_commissions_week = $12,
         max_commissions_month = $13,
         max_commissions_year = $14,
-        points = $15
-      WHERE id = $16 RETURNING *;
+        points = $15,
+        admin = $16
+      WHERE id = $17 RETURNING *;
       `;
 
-    const values = [...updatedUser.getUserAsArray(), id];
+    const values = [...updatedUser.getUserAsArray().slice(1), id];
     const { rows } = await client.query(query, values);
     await client.query("COMMIT;");
 
@@ -361,6 +481,10 @@ const updateUser = async (req, res) => {
   } catch (error) {
     await client.query("ROLLBACK;");
     console.log(error);
+    if (error.message.includes("out of range")) {
+      res.status(403).json({ error: "Invalid input is out of range" });
+      return;
+    }
     res.status(500).json({ error: error.message });
   } finally {
     client.release();
@@ -368,29 +492,61 @@ const updateUser = async (req, res) => {
 };
 
 const deleteUser = async (req, res) => {
-  const id = Number(req.params.id);
-  const { admin } = verifyToken(req.headers.authorization);
-
-  if (!admin) {
-    res.status(403).json({ error: "You are not authorized to do this" });
-  }
-
-  const client = await pool.connect();
-
+  let client = undefined;
   try {
+    client = await pool.connect();
+
+    const id = Number(req.params.id);
+    const token = verifyToken(req.headers.authorization);
+
+    if (!token.admin) {
+      const e = new Error("You are not authorized to do this");
+      e.code = 403;
+      throw e;
+    }
+
     await client.query("BEGIN;");
 
     const query = `DELETE FROM USERS WHERE id = $1 RETURNING *;`;
     const values = [id];
 
     const { rows } = await client.query(query, values);
-    res.status(200).json(`User deleted with ID: ${id}`);
+    res.status(200).json(rows[0].id);
   } catch (error) {
     await client.query("ROLLBACK;");
-    console.log(error);
+    if (error.code === 403) {
+      res.status(403).json({ error: error.message });
+      return;
+    }
+    /* istanbul ignore else */
+    if (error.message === "jwt must be provided") {
+      res.status(401).json({ error: error.message });
+      return;
+    }
+    /* istanbul ignore next */
     res.status(500).json({ error: error.message });
   } finally {
     client.release();
+  }
+};
+
+/* istanbul ignore next */
+const getUserExists = async (user, userId) => {
+  let queryText = "SELECT * FROM USERS WHERE id = $1;";
+  let values = [userId];
+  let res = await query(queryText, values);
+  if (res.rows.length === 0) {
+    const e = new Error("User does not exist");
+    e.code = 404;
+    throw e;
+  }
+  queryText = "SELECT * FROM USERS WHERE username = $1 OR email = $2;";
+  values = [user.username, user.email];
+  res = await query(queryText, values);
+  if (res.rows.length != 0 && res.rows[0].id !== userId) {
+    const e = new Error("Duplicate entry");
+    e.code = 409;
+    throw e;
   }
 };
 

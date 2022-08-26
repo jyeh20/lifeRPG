@@ -1,4 +1,4 @@
-import { pool } from "../../db/index";
+import { pool, getNewPool } from "../db/index";
 
 const initializeUsers = async () => {
   console.log("Dropping users table...");
@@ -37,4 +37,12 @@ const dropUsers = async () => {
   await pool.end();
 };
 
-export { initializeUsers, dropUsers };
+const endPool = async () => {
+  await pool.end();
+};
+
+const startPool = async () => {
+  await getNewPool();
+};
+
+export { initializeUsers, dropUsers, endPool, startPool };

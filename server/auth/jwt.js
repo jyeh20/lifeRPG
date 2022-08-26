@@ -1,5 +1,6 @@
 import dotenv from "dotenv";
 import jwt from "jsonwebtoken";
+import { User } from "../models";
 
 const nodeEnv = process.env.NODE_ENV || "development";
 
@@ -15,11 +16,16 @@ switch (nodeEnv) {
 }
 
 const generateToken = (user, expiresIn = "1hr") => {
-  return jwt.sign(
-    { id: user.id, username: user.username, admin: user?.admin },
-    process.env.JWT_SECRET,
-    { expiresIn }
-  );
+  try {
+    const userObj = new User(user);
+    return jwt.sign(
+      { id: userObj.id, username: userObj.username, admin: userObj?.admin },
+      process.env.JWT_SECRET,
+      { expiresIn }
+    );
+  } catch (error) {
+    throw error;
+  }
 };
 
 const verifyToken = (token) => {
