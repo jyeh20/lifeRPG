@@ -31,9 +31,8 @@ CREATE TABLE commissions (
   creator_id INTEGER NOT NULL,
   name VARCHAR(35) NOT NULL,
   description VARCHAR(255),
-  freq_week SMALLINT,
-  freq_month SMALLINT,
-  freq_year SMALLINT,
+  freq_type VARCHAR(25) NOT NULL,
+  freq SMALLINT NOT NULL,
   difficulty SMALLINT NOT NULL,
   num_times_completed INTEGER,
   completed BOOLEAN,
@@ -52,5 +51,17 @@ CREATE TABLE goals (
   UNIQUE(id),
   UNIQUE(name, creator_id),
   PRIMARY KEY (id, name),
+  FOREIGN KEY (creator_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+CREATE TABLE items (
+  id SERIAL,
+  creator_id INTEGER NOT NULL,
+  name VARCHAR(35) NOT NULL,
+  cost INTEGER NOT NULL,
+  item_url VARCHAR(255),
+  PRIMARY KEY (id, link),
+  UNIQUE(id),
+  UNIQUE(link, creator_id)
   FOREIGN KEY (creator_id) REFERENCES users(id) ON DELETE CASCADE
 );
