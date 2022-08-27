@@ -1,6 +1,6 @@
 import dotenv from "dotenv";
 import jwt from "jsonwebtoken";
-import { User } from "../models";
+import { User } from "../models/index.js";
 
 /* istanbul ignore next */
 const nodeEnv = process.env.NODE_ENV || "development";
@@ -33,11 +33,12 @@ const generateToken = (user, expiresIn = "1hr") => {
 };
 
 const verifyToken = (token) => {
-  const token = jwt.verify(token, process.env.JWT_SECRET);
-  if (!token.id || !token.username) {
+  const verifiedToken = jwt.verify(token, process.env.JWT_SECRET);
+  // console.log(verifiedToken);
+  if (!verifiedToken.id || !verifiedToken.username) {
     throw new Error("Invalid token");
   }
-  return jwt.verify(token, process.env.JWT_SECRET);
+  return verifiedToken;
 };
 
 export { generateToken, verifyToken };

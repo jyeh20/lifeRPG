@@ -3,7 +3,6 @@ import * as ctrl from "../controllers/users.js";
 
 const router = new Router();
 
-router.get("/users", ctrl.getUsers);
 router.get("/users/username", ctrl.getSelfByUsername);
 router.get("/users/id", ctrl.getSelfById);
 router.post("/users", ctrl.createUser);

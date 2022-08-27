@@ -1,13 +1,41 @@
 import { pool, query } from "../db/index.js";
 import { User } from "../models/index.js";
 import { verifyToken } from "../auth/jwt.js";
+import { checkIfUserExists, checkIfUsernameOrEmailIsTaken } from "./helpers.js";
+
+/**
+ * @description - This function is used to get all users in the database
+ * @param {object} request - The request object
+ * @param {object} response - The response object
+ */
+const getUsers = async (req, res) => {
+  let token = undefined;
+  try {
+    token = verifyToken(req.headers.authorization);
+  } catch (error) {
+    res.status(401).json({ error: error.message });
+    return;
+  }
+  if (!token.admin) {
+    res.status(403).json({ error: "This account is not authorized" });
+    return;
+  }
+  try {
+    const { rows } = await query("SELECT * FROM USERS;");
+    res.status(200).json(rows);
+  } catch (error) {
+    // console.log(error);
+    /* istanbul ignore next */
+    res.status(500).json({ error: error.message });
+  }
+};
 
 const getUserById = async (req, res) => {
   let admin = undefined;
   try {
     admin = verifyToken(req.headers.authorization);
   } catch (error) {
-    console.log(error);
+    // console.log(error);
     res.status(401).json({ error: error.message });
     return;
   }
@@ -25,7 +53,7 @@ const getUserById = async (req, res) => {
     }
     res.status(200).json(rows[0]);
   } catch (error) {
-    console.log(error);
+    // console.log(error);
     res.status(500).json({ error: error.message });
   }
 };
@@ -36,7 +64,7 @@ const updateUser = async (req, res) => {
   try {
     admin = verifyToken(req.headers.authorization);
   } catch (error) {
-    console.log(error);
+    // console.log(error);
     res.status(401).json({ error: error.message });
     return;
   }
@@ -58,9 +86,10 @@ const updateUser = async (req, res) => {
   }
 
   try {
-    await getUserExists(updatedUser, id);
+    await checkIfUserExists(updatedUser, id);
+    await checkIfUsernameOrEmailIsTaken(updatedUser, id);
   } catch (error) {
-    console.log(error);
+    // console.log(error);
     if (error.code === 409) {
       res.status(409).json({ error: "Duplicate entry" });
       return;
@@ -101,11 +130,11 @@ const updateUser = async (req, res) => {
     const { rows } = await client.query(query, values);
     await client.query("COMMIT;");
 
-    console.log(`Successfully updated user ${id}`);
+    // console.log(`Successfully updated user ${id}`);
     res.status(200).json(rows[0]);
   } catch (error) {
     await client.query("ROLLBACK;");
-    console.log(error);
+    // console.log(error);
     if (error.message.includes("out of range")) {
       res.status(403).json({ error: "Invalid input is out of range" });
       return;
@@ -152,4 +181,4 @@ const deleteUser = async (req, res) => {
   }
 };
 
-export { getUserById, updateUser, deleteUser };
+export { getUsers, getUserById, updateUser, deleteUser };

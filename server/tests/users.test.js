@@ -1,6 +1,6 @@
 import app from "../app";
 import supertest from "supertest";
-import { initializeUsers, dropUsers, startPool, endPool } from "./loader.js";
+import * as loader from "./loader.js";
 import { generateToken, verifyToken } from "../auth/jwt.js";
 
 const adminData = {
@@ -62,26 +62,22 @@ let user = "";
 let testUser = "";
 
 beforeAll(async () => {
-  return initializeUsers();
+  return loader.initializeUsers();
 });
 afterAll(async () => {
-  return dropUsers();
+  return loader.end();
 });
 
 const request = supertest(app);
 
 describe("createUser", () => {
-  it("Verifies user table is empty before testing", async () => {
-    const res = await request.get("/users").set("Authorization", admin);
-    expect(res.status).toBe(404);
-  });
   it("Creates an admin user with all fields filled", async () => {
     const res = await request.post("/users").send(adminData);
     expect(res.status).toBe(201);
     admin = res.body;
   });
   it("Verifies new user using admin key", async () => {
-    const res = await request.get("/users").set("Authorization", admin);
+    const res = await request.get("/admin/users").set("Authorization", admin);
     const firstUser = res.body[0];
     expect(res.status).toBe(200);
     expect(firstUser.id).toBe(1);
@@ -150,7 +146,7 @@ describe("createUser", () => {
     expect(res.status).toBe(409);
   });
   it("Checking if db rollback succeeded", async () => {
-    const res = await request.get("/users").set("Authorization", admin);
+    const res = await request.get("/admin/users").set("Authorization", admin);
     expect(res.status).toBe(200);
     expect(res.body.length).toBe(3);
   });
@@ -196,12 +192,12 @@ describe("createUser", () => {
 
 describe("getUsers", () => {
   it("Get users as admin", async () => {
-    const res = await request.get("/users").set("Authorization", admin);
+    const res = await request.get("/admin/users").set("Authorization", admin);
     expect(res.status).toBe(200);
     expect(res.body.length).toBe(7);
   });
   it("Get users as user", async () => {
-    const res = await request.get("/users").set("Authorization", user);
+    const res = await request.get("/admin/users").set("Authorization", user);
     expect(res.status).toBe(403);
   });
 });
@@ -227,6 +223,7 @@ describe("getSelfById", () => {
     expect(res.status).toBe(403);
   });
   it("Get user by id with no id", async () => {
+    console.log("start here");
     const fakeToken = generateToken({
       ...user7Data,
       id: undefined,
@@ -243,10 +240,10 @@ describe("getSelfById", () => {
     expect(res.status).toBe(404);
   });
   it("Crash server", async () => {
-    await endPool();
+    await loader.endPool();
     const res = await request.get("/users/id").set("Authorization", user);
     expect(res.status).toBe(500);
-    await startPool();
+    await loader.startPool();
   });
 });
 
@@ -263,10 +260,10 @@ describe("getSelfByUsername", () => {
     expect(queriedUser.username).toBe(userData.username);
   });
   it("Crash server", async () => {
-    await endPool();
+    await loader.endPool();
     const res = await request.get("/users/username").set("Authorization", user);
     expect(res.status).toBe(500);
-    await startPool();
+    await loader.startPool();
   });
 });
 
@@ -540,10 +537,10 @@ describe("updateUser", () => {
     expect(res.status).toBe(404);
   });
   it("Crash server", async () => {
-    await endPool();
+    await loader.endPool();
     const res = await request.put("/admin/users/7").set("Authorization", admin);
     expect(res.status).toBe(500);
-    await startPool();
+    await loader.startPool();
   });
 });
 
@@ -553,10 +550,10 @@ describe("deleteSelf", () => {
     expect(res.status).toBe(401);
   });
   it("Crashes server", async () => {
-    await endPool();
+    await loader.endPool();
     const res = await request.delete("/users").set("Authorization", testUser);
     expect(res.status).toBe(500);
-    await startPool();
+    await loader.startPool();
   });
   it("Deletes user with user token", async () => {
     const res = await request.delete("/users").set("Authorization", testUser);
@@ -564,7 +561,7 @@ describe("deleteSelf", () => {
     expect(res.body).toBe(7);
   });
   it("Validate user table size is 6", async () => {
-    const res = await request.get("/users").set("Authorization", admin);
+    const res = await request.get("/admin/users").set("Authorization", admin);
     expect(res.status).toBe(200);
     expect(res.body.length).toBe(6);
   });
@@ -573,7 +570,6 @@ describe("deleteSelf", () => {
 describe("deleteUser", () => {
   it("Deletes user 6 without token", async () => {
     const res = await request.delete("/admin/users/6").set("Authorization", "");
-    console.log("user6", res.res);
     expect(res.status).toBe(401);
   });
   it("Deletes user 6 with token without admin access", async () => {
@@ -583,12 +579,12 @@ describe("deleteUser", () => {
     expect(res.status).toBe(403);
   });
   it("Crashes server", async () => {
-    await endPool();
+    await loader.endPool();
     const res = await request
       .delete("/admin/users/6")
       .set("Authorization", admin);
     expect(res.status).toBe(500);
-    await startPool();
+    await loader.startPool();
   });
   it("Deletes user 6 with admin access", async () => {
     const res = await request
@@ -598,7 +594,7 @@ describe("deleteUser", () => {
     expect(res.body).toBe(6);
   });
   it("Validate user table size is 5", async () => {
-    const res = await request.get("/users").set("Authorization", admin);
+    const res = await request.get("/admin/users").set("Authorization", admin);
     expect(res.status).toBe(200);
     expect(res.body.length).toBe(5);
   });
@@ -614,10 +610,10 @@ describe("getUserById", () => {
     expect(res.status).toBe(403);
   });
   it("Crashes server", async () => {
-    await endPool();
+    await loader.endPool();
     const res = await request.get("/admin/users/6").set("Authorization", admin);
     expect(res.status).toBe(500);
-    await startPool();
+    await loader.startPool();
   });
   it("Gets user 6 by ID with admin token", async () => {
     const res = await request.get("/admin/users/6").set("Authorization", admin);

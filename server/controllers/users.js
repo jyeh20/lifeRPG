@@ -2,6 +2,7 @@ import dotenv from "dotenv";
 import { pool, query } from "../db/index.js";
 import { User } from "../models/index.js";
 import { generateToken, verifyToken } from "../auth/jwt.js";
+import { checkIfUserExists, checkIfUsernameOrEmailIsTaken } from "./helpers.js";
 import bcrypt from "bcrypt";
 
 /* istanbul ignore next */
@@ -19,30 +20,21 @@ switch (nodeEnv) {
     dotenv.config({ path: "../config/config.dev.env" });
 }
 
-/**
- * @description - This function is used to get all users in the database
- * @param {object} request - The request object
- * @param {object} response - The response object
- */
-const getUsers = async (req, res) => {
-  const token = verifyToken(req.headers.authorization);
-  if (!token.admin) {
-    res.status(403).json({ error: "This account is not authorized" });
+const getSelfById = async (req, res) => {
+  let token = undefined;
+
+  if (!req.headers.authorization) {
+    res.status(401).json({ error: "jwt must be provided" });
+    return;
+  }
+
+  try {
+    token = verifyToken(req.headers.authorization);
+  } catch (error) {
+    res.status(401).json({ error: error.message });
     return;
   }
   try {
-    const { rows } = await query("SELECT * FROM USERS;");
-    res.status(200).json(rows);
-  } catch (error) {
-    console.log(error);
-    /* istanbul ignore next */
-    res.status(500).json({ error: error.message });
-  }
-};
-
-const getSelfById = async (req, res) => {
-  try {
-    const token = verifyToken(req.headers.authorization);
     const id = token.id;
 
     if (!id) {
@@ -107,18 +99,10 @@ const createUser = async (req, res) => {
   }
 
   try {
-    const preQuery = "SELECT * FROM USERS WHERE username = $1 OR email = $2;";
-    const preValues = [user.username, user.email];
-    const preQueryRes = await query(preQuery, preValues);
-    if (preQueryRes.rows.length != 0) {
-      res.status(409).json({ error: "Duplicate entry" });
-      return;
-    }
+    await checkIfUsernameOrEmailIsTaken(user);
   } catch (error) {
     console.log(error);
-    /* istanbul ignore next */
-    res.status(500).json({ error: error.message });
-    /* istanbul ignore next */
+    res.status(error.code).json({ error: error.message });
     return;
   }
 
@@ -273,7 +257,8 @@ const updateSelf = async (req, res) => {
   }
 
   try {
-    await getUserExists(updatedUser, token.id);
+    await checkIfUserExists(updatedUser, token.id);
+    await checkIfUsernameOrEmailIsTaken(updatedUser, token.id);
   } catch (error) {
     console.log(error);
     /* istanbul ignore else */
@@ -361,28 +346,7 @@ const deleteSelf = async (req, res) => {
   }
 };
 
-/* istanbul ignore next */
-const getUserExists = async (user, userId) => {
-  let queryText = "SELECT * FROM USERS WHERE id = $1;";
-  let values = [userId];
-  let res = await query(queryText, values);
-  if (res.rows.length === 0) {
-    const e = new Error("User does not exist");
-    e.code = 404;
-    throw e;
-  }
-  queryText = "SELECT * FROM USERS WHERE username = $1 OR email = $2;";
-  values = [user.username, user.email];
-  res = await query(queryText, values);
-  if (res.rows.length != 0 && res.rows[0].id !== userId) {
-    const e = new Error("Duplicate entry");
-    e.code = 409;
-    throw e;
-  }
-};
-
 export {
-  getUsers,
   getSelfById,
   getSelfByUsername,
   createUser,
