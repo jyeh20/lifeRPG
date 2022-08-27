@@ -4,7 +4,7 @@ class Item {
     this.creator_id = props.creator_id;
     this.name = props.name;
     this.cost = props.cost;
-    this.link = props.link || null;
+    this.item_url = props.item_url || null;
 
     if (!this.creator_id || !this.name || !this.cost) {
       const e = new Error("Missing required fields");
@@ -16,17 +16,21 @@ class Item {
   getItem() {
     return {
       id: this.id,
-      creator_id: this.creator_id,
       name: this.name,
       cost: this.cost,
-      link: this.link,
+      link: this.item_url,
+      creator_id: this.creator_id,
     };
   }
 
   getItemAsArray() {
-    return [this.id, this.creator_id, this.name, this.cost, this.link].filter(
-      (prop) => prop !== undefined
-    );
+    return [
+      this.id,
+      this.name,
+      this.cost,
+      this.item_url,
+      this.creator_id,
+    ].filter((prop) => prop !== undefined);
   }
 }
 
