@@ -56,12 +56,12 @@ CREATE TABLE goals (
 
 CREATE TABLE items (
   id SERIAL,
-  creator_id INTEGER NOT NULL,
   name VARCHAR(35) NOT NULL,
   cost INTEGER NOT NULL,
   item_url VARCHAR(255),
-  PRIMARY KEY (id, link),
+  creator_id INTEGER NOT NULL,
+  PRIMARY KEY (id, item_url),
   UNIQUE(id),
-  UNIQUE(link, creator_id)
+  UNIQUE(item_url, creator_id),
   FOREIGN KEY (creator_id) REFERENCES users(id) ON DELETE CASCADE
 );
