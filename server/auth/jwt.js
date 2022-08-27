@@ -33,6 +33,10 @@ const generateToken = (user, expiresIn = "1hr") => {
 };
 
 const verifyToken = (token) => {
+  const token = jwt.verify(token, process.env.JWT_SECRET);
+  if (!token.id || !token.username) {
+    throw new Error("Invalid token");
+  }
   return jwt.verify(token, process.env.JWT_SECRET);
 };
 
