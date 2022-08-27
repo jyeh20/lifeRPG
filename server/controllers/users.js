@@ -37,11 +37,6 @@ const getSelfById = async (req, res) => {
   try {
     const id = token.id;
 
-    if (!id) {
-      res.status(401).json({ error: "You must be logged in" });
-      return;
-    }
-
     const { rows } = await query("SELECT * FROM USERS WHERE id = $1;", [id]);
     if (rows.length === 0) {
       res.status(404).json({ error: "User does not exist" });
@@ -56,10 +51,6 @@ const getSelfById = async (req, res) => {
     res.status(200).json(rows[0]);
   } catch (error) {
     console.log(error);
-    if (error.message === "jwt must be provided") {
-      res.status(401).json({ error: error.message });
-      return;
-    }
     res.status(500).json({ error: error.message });
   }
 };
