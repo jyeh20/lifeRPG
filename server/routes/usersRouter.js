@@ -12,8 +12,4 @@ router.post("/users/login/username", ctrl.getUserWithUsernameLogin);
 router.put("/users", ctrl.updateSelf);
 router.delete("/users", ctrl.deleteSelf);
 
-router.get("/admin/users/:id", ctrl.getUserById);
-router.put("/admin/users/:id", ctrl.updateUser);
-router.delete("/admin/users/:id", ctrl.deleteUser);
-
 export default router;
