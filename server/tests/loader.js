@@ -1,5 +1,6 @@
 import { pool, getNewPool } from "../db/index";
 import { User } from "../models/index.js";
+import { generateToken } from "../auth/jwt.js";
 
 const initializeUsers = async () => {
   console.log("Dropping users table...");
@@ -42,9 +43,9 @@ const initializeItems = async () => {
   cost INTEGER NOT NULL,
   item_url VARCHAR(255),
   creator_id INTEGER NOT NULL,
-  PRIMARY KEY (id, item_url),
+  PRIMARY KEY (id, name, creator_id),
   UNIQUE(id),
-  UNIQUE(item_url, creator_id),
+  UNIQUE(id, name, creator_id),
   FOREIGN KEY (creator_id) REFERENCES users(id) ON DELETE CASCADE
 );
   `);
@@ -53,6 +54,7 @@ const initializeItems = async () => {
 
 const loadUsers = async (usersList) => {
   console.log("Loading users...");
+  let tokens = [];
   for (let i = 0; i < usersList.length; i++) {
     let user = usersList[i];
     user = new User(user);
@@ -81,7 +83,9 @@ const loadUsers = async (usersList) => {
       `,
       user.getUserAsArray()
     );
+    tokens.push(generateToken({ ...user.getUser(), id: i + 1 }));
   }
+  return tokens;
 };
 
 const dropUsers = async () => {
@@ -105,9 +109,13 @@ const startPool = async () => {
 };
 
 const start = async (users) => {
+  let tokens = [];
   await initializeUsers();
-  await loadUsers(users);
   await initializeItems();
+  if (users) {
+    tokens = await loadUsers(users);
+  }
+  return tokens;
 };
 
 const end = async () => {

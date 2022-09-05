@@ -3,6 +3,8 @@ import { Commission } from "../models/index.js";
 
 // GET
 
+const getCommissions = async (req, res) => {};
+
 const getCommissionById = async (req, res) => {};
 
 const getCommissionsWithUserId = async (req, res) => {};
@@ -20,6 +22,7 @@ const updateCommission = async (req, res) => {};
 const deleteCommission = async (req, res) => {};
 
 export {
+  getCommissions,
   getCommissionById,
   getCommissionsWithUserId,
   createCommission,

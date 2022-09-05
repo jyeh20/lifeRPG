@@ -32,9 +32,9 @@ const checkIfUsernameOrEmailIsTaken = async (user, userId) => {
   }
 };
 
-const checkIfItemExists = async (item, creatorId) => {
+const checkIfItemExists = async (itemId, creatorId) => {
   const queryText = "SELECT * FROM ITEMS WHERE id = $1 AND creator_id = $2";
-  const values = [item.id, creatorId];
+  const values = [itemId, creatorId];
   const res = await query(queryText, values);
   if (res.rows.length === 0) {
     const e = new Error("Could not find item with provided ID");
@@ -47,7 +47,7 @@ const checkIfItemNameIsTaken = async (item, creatorId) => {
   const queryText = "SELECT * FROM ITEMS WHERE name = $1 AND creator_id = $2";
   const values = [item.name, creatorId];
   const res = await query(queryText, values);
-  if (res.rows.length != 0) {
+  if (res.rows.length != 0 && res.rows[0].id != item.id) {
     const e = new Error("Item by that name already exists");
     e.code = 409;
     throw e;

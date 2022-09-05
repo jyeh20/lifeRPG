@@ -9,7 +9,7 @@ def get_name(index):
   return "item" + str(index)
 
 def get_cost():
-  return random(1, 4000)
+  return random.randint(1, 4000)
 
 def get_item_url(index):
   return "item" + str(index) + ".com"
@@ -21,7 +21,10 @@ for i in range(1, 20):
                 INSERT INTO goals (
                   creator_id, name, description, reward
                 ) VALUES (
-                  '{get_creator()}', '{get_name(i)}', '{get_cost()}', '{get_item_url(i)}'
+                  '{get_creator()}',
+                  '{get_name(i)}',
+                  '{get_cost()}',
+                  '{get_item_url(i)}'
                 );
                 """)
 

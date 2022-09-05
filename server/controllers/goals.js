@@ -3,6 +3,8 @@ import { Goal } from "../models/index.js";
 
 // GET
 
+const getGoals = async (req, res) => {};
+
 const getGoalById = async (req, res) => {};
 
 const getGoalsWithUserId = async (req, res) => {};
@@ -19,4 +21,11 @@ const updateGoal = async (req, res) => {};
 
 const deleteGoal = async (req, res) => {};
 
-export {};
+export {
+  getGoals,
+  getGoalById,
+  getGoalsWithUserId,
+  createGoal,
+  updateGoal,
+  deleteGoal,
+};

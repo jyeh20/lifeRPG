@@ -62,7 +62,7 @@ let user = "";
 let testUser = "";
 
 beforeAll(async () => {
-  return loader.initializeUsers();
+  return loader.start();
 });
 afterAll(async () => {
   return loader.end();
@@ -223,7 +223,6 @@ describe("getSelfById", () => {
     expect(res.status).toBe(403);
   });
   it("Get user by id with no id", async () => {
-    console.log("start here");
     const fakeToken = generateToken({
       ...user7Data,
       id: undefined,

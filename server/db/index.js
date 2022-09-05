@@ -6,7 +6,6 @@ import dotenv from "dotenv";
 import pg from "pg";
 
 const Pool = pg.Pool;
-const Client = pg.Client;
 const nodeEnv = process.env.NODE_ENV || "development";
 
 switch (nodeEnv) {
@@ -42,7 +41,7 @@ const query = async (sql, params) => {
   const start = Date.now();
   const result = await pool.query(sql, params);
   const duration = Date.now() - start;
-  console.log(`\nQuery ${sql} took ${duration}ms\n`);
+  // console.log(`\nQuery ${sql} took ${duration}ms\n`);
   return result;
 };
 

@@ -13,16 +13,6 @@ class Item {
     }
   }
 
-  getItem() {
-    return {
-      id: this.id,
-      name: this.name,
-      cost: this.cost,
-      link: this.item_url,
-      creator_id: this.creator_id,
-    };
-  }
-
   getItemAsArray() {
     return [
       this.id,
