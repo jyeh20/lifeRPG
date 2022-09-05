@@ -3,7 +3,7 @@ class Commission {
     this.id = props.id;
     this.creator_id = props.creator_id;
     this.name = props.name;
-    this.description = props.description;
+    this.description = props.description || null;
     this.freq_type = props.freq_type;
     this.freq = props.freq || 1;
     this.difficulty = props.difficulty || 1;
@@ -28,23 +28,9 @@ class Commission {
     }
   }
 
-  getCommission() {
-    return {
-      id: this.id,
-      creator_id: this.creator_id,
-      name: this.name,
-      description: this.description,
-      freq_type: this.freq_type,
-      freq: this.freq,
-      difficulty: this.difficulty,
-      num_times_completed: this.num_times_completed,
-      completed: this.completed,
-    };
-  }
-
   getCommissionAsArray() {
     return [
-      this.creator_id,
+      this.id,
       this.name,
       this.description,
       this.freq_type,
@@ -52,7 +38,8 @@ class Commission {
       this.difficulty,
       this.num_times_completed,
       this.completed,
-    ];
+      this.creator_id,
+    ].filter((prop) => prop !== undefined);
   }
 }
 

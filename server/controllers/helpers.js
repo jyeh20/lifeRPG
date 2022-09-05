@@ -54,9 +54,35 @@ const checkIfItemNameIsTaken = async (item, creatorId) => {
   }
 };
 
+const checkIfCommissionExists = async (commissionId, creatorId) => {
+  const queryText =
+    "SELECT * FROM COMMISSIONS WHERE id = $1 AND creator_id = $2";
+  const values = [commissionId, creatorId];
+  const res = await query(queryText, values);
+  if (res.rows.length === 0) {
+    const e = new Error("Could not find commission with provided ID");
+    e.code = 404;
+    throw e;
+  }
+};
+
+const checkIfCommissionNameIsTaken = async (commission, creatorId) => {
+  const queryText =
+    "SELECT * FROM COMMISSIONS WHERE name = $1 AND creator_id = $2";
+  const values = [commission.name, creatorId];
+  const res = await query(queryText, values);
+  if (res.rows.length != 0 && res.rows[0].id != commission.id) {
+    const e = new Error("Commission by that name already exists");
+    e.code = 409;
+    throw e;
+  }
+};
+
 export {
   checkIfUserExists,
   checkIfUsernameOrEmailIsTaken,
   checkIfItemExists,
   checkIfItemNameIsTaken,
+  checkIfCommissionExists,
+  checkIfCommissionNameIsTaken,
 };

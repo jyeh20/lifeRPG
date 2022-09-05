@@ -3,9 +3,8 @@ import { User } from "../models/index.js";
 import { generateToken } from "../auth/jwt.js";
 
 const initializeUsers = async () => {
-  console.log("Dropping users table...");
-  await pool.query("DROP TABLE IF EXISTS users CASCADE;");
-  console.log("Users table dropped.\nCreating users table...");
+  await dropUsers();
+  console.log("Creating users table...");
   await pool.query(`CREATE TABLE users (
   id SERIAL,
   first_name VARCHAR(255) NOT NULL,
@@ -33,9 +32,8 @@ const initializeUsers = async () => {
 };
 
 const initializeItems = async () => {
-  console.log("Dropping items table...");
-  await pool.query("DROP TABLE IF EXISTS items CASCADE;");
-  console.log("Items table dropped.\nCreating items table...");
+  await dropItems();
+  console.log("Creating items table...");
   await pool.query(`
   CREATE TABLE items (
   id SERIAL,
@@ -50,6 +48,29 @@ const initializeItems = async () => {
 );
   `);
   console.log("Items table created.");
+};
+
+const initializeCommissions = async () => {
+  await dropCommissions();
+  console.log("Creating commissions table...");
+  await pool.query(`
+    CREATE TABLE commissions (
+      id SERIAL,
+      creator_id INTEGER NOT NULL,
+      name VARCHAR(35) NOT NULL,
+      description VARCHAR(255),
+      freq_type VARCHAR(25) NOT NULL,
+      freq SMALLINT NOT NULL,
+      difficulty SMALLINT NOT NULL,
+      num_times_completed INTEGER,
+      completed BOOLEAN,
+      UNIQUE(id),
+      UNIQUE(name, creator_id),
+      PRIMARY KEY (id, name),
+      FOREIGN KEY (creator_id) REFERENCES users(id) ON DELETE CASCADE
+    );
+  `);
+  console.log("Commission table created.");
 };
 
 const loadUsers = async (usersList) => {
@@ -100,6 +121,12 @@ const dropItems = async () => {
   console.log("Items table dropped.");
 };
 
+const dropCommissions = async () => {
+  console.log("Dropping commissions table...");
+  await pool.query("DROP TABLE IF EXISTS commissions CASCADE;");
+  console.log("Commissions table dropped.");
+};
+
 const endPool = async () => {
   await pool.end();
 };
@@ -112,6 +139,7 @@ const start = async (users) => {
   let tokens = [];
   await initializeUsers();
   await initializeItems();
+  await initializeCommissions();
   if (users) {
     tokens = await loadUsers(users);
   }
@@ -121,15 +149,18 @@ const start = async (users) => {
 const end = async () => {
   await dropUsers();
   await dropItems();
+  await dropCommissions();
   await endPool();
 };
 
 export {
   initializeUsers,
   initializeItems,
+  initializeCommissions,
   loadUsers,
   dropUsers,
   dropItems,
+  dropCommissions,
   endPool,
   startPool,
   start,

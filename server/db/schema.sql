@@ -31,7 +31,7 @@ CREATE TABLE commissions (
   creator_id INTEGER NOT NULL,
   name VARCHAR(35) NOT NULL,
   description VARCHAR(255),
-  freq_type VARCHAR(25) NOT NULL,
+  freq_type VARCHAR(8) NOT NULL,
   freq SMALLINT NOT NULL,
   difficulty SMALLINT NOT NULL,
   num_times_completed INTEGER,

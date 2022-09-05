@@ -165,7 +165,6 @@ const createItem = async (req, res) => {
 };
 
 const updateItem = async (req, res) => {
-  console.log(req.body);
   let token = undefined;
   if (!req.headers.authorization) {
     res.status(401).json({ error: "No token provided" });
