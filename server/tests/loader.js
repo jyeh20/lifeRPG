@@ -73,6 +73,23 @@ const initializeCommissions = async () => {
   console.log("Commission table created.");
 };
 
+const initializeGoals = async () => {
+  await dropGoals();
+  console.log("Creating goals table...");
+  await pool.query(`
+  CREATE TABLE goals (
+  id SERIAL,
+  creator_id INTEGER NOT NULL,
+  name VARCHAR(35) NOT NULL,
+  description VARCHAR(255),
+  reward SMALLINT NOT NULL,
+  UNIQUE(id),
+  UNIQUE(name, creator_id),
+  PRIMARY KEY (id, name),
+  FOREIGN KEY (creator_id) REFERENCES users(id) ON DELETE CASCADE
+);`);
+};
+
 const loadUsers = async (usersList) => {
   console.log("Loading users...");
   let tokens = [];
@@ -127,6 +144,12 @@ const dropCommissions = async () => {
   console.log("Commissions table dropped.");
 };
 
+const dropGoals = async () => {
+  console.log("Dropping goals table...");
+  await pool.query("DROP TABLE IF EXISTS goals CASCADE;");
+  console.log("Goals table dropped.");
+};
+
 const endPool = async () => {
   await pool.end();
 };
@@ -140,6 +163,7 @@ const start = async (users) => {
   await initializeUsers();
   await initializeItems();
   await initializeCommissions();
+  await initializeGoals();
   if (users) {
     tokens = await loadUsers(users);
   }
@@ -150,6 +174,7 @@ const end = async () => {
   await dropUsers();
   await dropItems();
   await dropCommissions();
+  await dropGoals();
   await endPool();
 };
 

@@ -196,6 +196,10 @@ describe("getUsers", () => {
     expect(res.status).toBe(200);
     expect(res.body.length).toBe(7);
   });
+  it("Get users as admin with no token", async () => {
+    const res = await request.get("/admin/users").set("Authorization", "");
+    expect(res.status).toBe(401);
+  });
   it("Get users as user", async () => {
     const res = await request.get("/admin/users").set("Authorization", user);
     expect(res.status).toBe(403);
