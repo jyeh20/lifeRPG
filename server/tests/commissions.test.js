@@ -56,12 +56,6 @@ const updatedCom1 = {
   num_times_completed: 1,
   completed: 1,
 };
-const updatedCom2 = {
-  ...com2,
-  freq: 3,
-  num_times_completed: 1,
-  completed: 1,
-};
 const invalidUpdate = {
   ...com2,
   freq: -1,
@@ -90,7 +84,7 @@ describe("createCommission", () => {
       .set("Authorization", "");
     expect(res.status).toBe(401);
   });
-  it("Empty item", async () => {
+  it("Empty commission", async () => {
     const res = await request
       .post("/commissions")
       .set("Authorization", tokens[0])
@@ -101,7 +95,7 @@ describe("createCommission", () => {
     const res = await request
       .post("/commissions")
       .send(com1)
-      .set("Authorization", "invalid");
+      .set("Authorization", generateToken(invalidData));
     expect(res.status).toBe(401);
   });
   it("Commission with missing required fields", async () => {
@@ -109,6 +103,7 @@ describe("createCommission", () => {
       .post("/commissions")
       .set("Authorization", tokens[0])
       .send({ ...invalidCommission });
+    expect(res.status).toBe(403);
   });
   it("Creates commission 1 for user 1", async () => {
     const res = await request
