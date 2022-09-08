@@ -1,10 +1,7 @@
 import { query, pool } from "../db/index.js";
 import { Commission } from "../models/index.js";
 import { verifyToken } from "../auth/jwt.js";
-import {
-  checkIfCommissionExists,
-  checkIfCommissionNameIsTaken,
-} from "./helpers.js";
+import { checkIfExists, checkIfNameIsTaken } from "./helpers.js";
 
 // GET
 
@@ -124,7 +121,7 @@ const createCommission = async (req, res) => {
   }
 
   try {
-    await checkIfCommissionNameIsTaken(commissionToEnter, token.id);
+    await checkIfNameIsTaken("Commission", commissionToEnter, token.id);
   } catch (error) {
     console.log(error);
     /* istanbul ignore else */
@@ -211,8 +208,8 @@ const updateCommission = async (req, res) => {
   }
 
   try {
-    await checkIfCommissionExists(newCommission.id, token.id);
-    await checkIfCommissionNameIsTaken(newCommission, token.id);
+    await checkIfExists("Commission", newCommission.id, token.id);
+    await checkIfNameIsTaken("Commission", newCommission, token.id);
   } catch (error) {
     if (error.code === 404) {
       res.status(error.code).json({ error: error.message });
@@ -292,7 +289,7 @@ const deleteCommission = async (req, res) => {
 
   try {
     console.log("deleting", commissionToDelete);
-    await checkIfCommissionExists(commissionToDelete.id, token.id);
+    await checkIfExists("Commission", commissionToDelete.id, token.id);
   } catch (error) {
     /* istanbul ignore else */
     if (error.code === 404) {

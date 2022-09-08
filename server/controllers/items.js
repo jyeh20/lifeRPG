@@ -1,6 +1,6 @@
 import { pool, query } from "../db/index.js";
 import { verifyToken } from "../auth/jwt.js";
-import { checkIfItemExists, checkIfItemNameIsTaken } from "./helpers.js";
+import { checkIfExists, checkIfNameIsTaken } from "./helpers.js";
 import { Item } from "../models/index.js";
 
 const getItems = async (req, res) => {
@@ -114,7 +114,7 @@ const createItem = async (req, res) => {
   }
 
   try {
-    await checkIfItemNameIsTaken(itemToEnter, token.id);
+    await checkIfNameIsTaken("Item", itemToEnter, token.id);
   } catch (error) {
     console.log(error);
     /* istanbul ignore else */
@@ -196,8 +196,8 @@ const updateItem = async (req, res) => {
   }
 
   try {
-    await checkIfItemExists(newItem.id, token.id);
-    await checkIfItemNameIsTaken(newItem, token.id);
+    await checkIfExists("Item", newItem.id, token.id);
+    await checkIfNameIsTaken("Item", newItem, token.id);
   } catch (error) {
     if (error.code === 404) {
       res.status(error.code).json({ error: error.message });
@@ -272,7 +272,7 @@ const deleteItem = async (req, res) => {
 
   try {
     console.log("deleting", itemToDelete);
-    await checkIfItemExists(itemToDelete.id, token.id);
+    await checkIfExists("Item", itemToDelete.id, token.id);
   } catch (error) {
     /* istanbul ignore else */
     if (error.code === 404) {

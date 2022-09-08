@@ -1,7 +1,7 @@
 import { pool, query } from "../db/index.js";
 import { User } from "../models/index.js";
 import { verifyToken } from "../auth/jwt.js";
-import { checkIfUserExists, checkIfUsernameOrEmailIsTaken } from "./helpers.js";
+import { checkIfExists, checkIfNameIsTaken } from "./helpers.js";
 
 /**
  * @description - This function is used to get all users in the database
@@ -86,8 +86,8 @@ const updateUser = async (req, res) => {
   }
 
   try {
-    await checkIfUserExists(updatedUser, id);
-    await checkIfUsernameOrEmailIsTaken(updatedUser, id);
+    await checkIfExists("User", id);
+    await checkIfNameIsTaken("User", updatedUser, id);
   } catch (error) {
     // console.log(error);
     if (error.code === 409) {

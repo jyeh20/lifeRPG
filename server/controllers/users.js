@@ -2,7 +2,7 @@ import dotenv from "dotenv";
 import { pool, query } from "../db/index.js";
 import { User } from "../models/index.js";
 import { generateToken, verifyToken } from "../auth/jwt.js";
-import { checkIfUserExists, checkIfUsernameOrEmailIsTaken } from "./helpers.js";
+import { checkIfExists, checkIfNameIsTaken } from "./helpers.js";
 import bcrypt from "bcrypt";
 
 /* istanbul ignore next */
@@ -90,7 +90,7 @@ const createUser = async (req, res) => {
   }
 
   try {
-    await checkIfUsernameOrEmailIsTaken(user);
+    await checkIfNameIsTaken("User", user);
   } catch (error) {
     console.log(error);
     res.status(error.code).json({ error: error.message });
@@ -248,8 +248,8 @@ const updateSelf = async (req, res) => {
   }
 
   try {
-    await checkIfUserExists(updatedUser, token.id);
-    await checkIfUsernameOrEmailIsTaken(updatedUser, token.id);
+    await checkIfExists("User", token.id);
+    await checkIfNameIsTaken("User", updatedUser, token.id);
   } catch (error) {
     console.log(error);
     /* istanbul ignore else */
