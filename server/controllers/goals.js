@@ -269,18 +269,10 @@ const deleteGoal = async (req, res) => {
     return;
   }
 
-  let goalToDelete = undefined;
-  try {
-    goalToDelete = new Goal(req.body);
-  } catch (error) {
-    console.log(error);
-    res.status(403).json({ error: "Invalid goal format" });
-    return;
-  }
+  let goalToDeleteId = req.body.id;
 
   try {
-    console.log("deleting", goalToDelete);
-    await checkIfExists("Goal", goalToDelete.id, token.id);
+    await checkIfExists("Goal", goalToDeleteId, token.id);
   } catch (error) {
     /* istanbul ignore else */
     if (error.code === 404) {
@@ -296,11 +288,10 @@ const deleteGoal = async (req, res) => {
   const client = await pool.connect();
   try {
     client.query("BEGIN");
-    const goalId = goalToDelete.id;
     const creatorId = token.id;
     const queryText =
       "DELETE FROM GOALS WHERE id = $1 AND creator_id = $2 RETURNING *;";
-    const values = [goalId, creatorId];
+    const values = [goalToDeleteId, creatorId];
     const { rows } = await query(queryText, values);
     console.log(`Successfully deleted goal ${rows[0].id}`);
     await client.query("COMMIT");

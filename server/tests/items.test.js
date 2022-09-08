@@ -378,28 +378,28 @@ describe("updateItem", () => {
 
 describe("deleteItem", () => {
   it("No token", async () => {
-    const res = await request.delete("/userItem").send(newItem1);
+    const res = await request.delete("/userItem").send({ id: newItem1.id });
     expect(res.status).toBe(401);
   });
   it("Empty string as token", async () => {
     const res = await request
       .delete("/userItem")
       .set("Authorization", "")
-      .send(newItem1);
+      .send({ id: newItem1.id });
     expect(res.status).toBe(401);
   });
   it("Invalid token", async () => {
     const res = await request
       .delete("/userItem")
       .set("Authorization", generateToken(invalidData))
-      .send(newItem1);
+      .send({ id: newItem1.id });
     expect(res.status).toBe(401);
   });
   it("Item doesn't exist", async () => {
     const res = await request
       .delete("/userItem")
       .set("Authorization", tokens[0])
-      .send({ ...duplicateItem1, id: 10 });
+      .send({ id: 10 });
     expect(res.status).toBe(404);
   });
   it("Deletes empty item for user 1", async () => {
@@ -407,20 +407,20 @@ describe("deleteItem", () => {
       .delete("/userItem")
       .set("Authorization", tokens[0])
       .send({});
-    expect(res.status).toBe(403);
+    expect(res.status).toBe(404);
   });
   it("Deletes item 1 for user 1", async () => {
     const res = await request
       .delete("/userItem")
       .set("Authorization", tokens[0])
-      .send(newItem1);
+      .send({ id: newItem1.id });
     expect(res.status).toBe(200);
   });
   it("Deletes item 2 for user 2", async () => {
     const res = await request
       .delete("/userItem")
       .set("Authorization", tokens[1])
-      .send(newItem2);
+      .send({ id: newItem2.id });
     expect(res.status).toBe(200);
   });
   it("Deletes item 4 for user 2", async () => {
@@ -428,14 +428,14 @@ describe("deleteItem", () => {
     const res = await request
       .delete("/userItem")
       .set("Authorization", tokens[1])
-      .send({ ...item4, creator_id: 2, id: 4 });
+      .send({ id: 4 });
     expect(res.status).toBe(200);
   });
   it("Deletes item 4 for user 1", async () => {
     const res = await request
       .delete("/userItem")
       .set("Authorization", tokens[0])
-      .send({ ...item4, creator_id: 1, id: 5 });
+      .send({ id: 5 });
     expect(res.status).toBe(200);
   });
 });

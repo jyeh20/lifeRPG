@@ -278,18 +278,10 @@ const deleteCommission = async (req, res) => {
     return;
   }
 
-  let commissionToDelete = undefined;
-  try {
-    commissionToDelete = new Commission(req.body);
-  } catch (error) {
-    console.log(error);
-    res.status(400).json({ error: "Invalid commission format" });
-    return;
-  }
+  let commissionToDeleteId = req.body.id;
 
   try {
-    console.log("deleting", commissionToDelete);
-    await checkIfExists("Commission", commissionToDelete.id, token.id);
+    await checkIfExists("Commission", commissionToDeleteId, token.id);
   } catch (error) {
     /* istanbul ignore else */
     if (error.code === 404) {
@@ -305,11 +297,10 @@ const deleteCommission = async (req, res) => {
   const client = await pool.connect();
   try {
     client.query("BEGIN");
-    const commissionId = commissionToDelete.id;
     const creatorId = token.id;
     const queryText =
       "DELETE FROM COMMISSIONS WHERE id = $1 AND creator_id = $2 RETURNING *;";
-    const values = [commissionId, creatorId];
+    const values = [commissionToDeleteId, creatorId];
     const { rows } = await query(queryText, values);
     console.log(`Successfully deleted commission ${rows[0].id}`);
     await client.query("COMMIT");

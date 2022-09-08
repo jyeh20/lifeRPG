@@ -2,7 +2,6 @@ import app from "../app";
 import supertest from "supertest";
 import * as loader from "./loader.js";
 import { generateToken } from "../auth/jwt";
-import { items } from "../routes";
 
 const request = supertest(app);
 
@@ -308,22 +307,20 @@ describe("updateGoal", () => {
 
 describe("deleteGoal", () => {
   it("No token", async () => {
-    const res = await request
-      .delete("/goals")
-      .send({ ...goal1, creator_id: 1, id: 1, name: "updatedGoal1" });
+    const res = await request.delete("/goals").send({ id: 1 });
     expect(res.status).toBe(401);
   });
   it("Empty string as token", async () => {
     const res = await request
       .delete("/goals")
-      .send({ ...goal1, creator_id: 1, id: 1, name: "updatedGoal1" })
+      .send({ id: 1 })
       .set("Authorization", "");
     expect(res.status).toBe(401);
   });
   it("Invalid token", async () => {
     const res = await request
       .delete("/goals")
-      .send({ ...goal1, creator_id: 1, id: 1, name: "updatedGoal1" })
+      .send({ id: 1 })
       .set("Authorization", generateToken(invalidData));
     expect(res.status).toBe(401);
   });
@@ -332,33 +329,19 @@ describe("deleteGoal", () => {
       .delete("/goals")
       .send({})
       .set("Authorization", tokens[0]);
-    expect(res.status).toBe(403);
+    expect(res.status).toBe(404);
   });
   it("Goal doesn't exist", async () => {
     const res = await request
       .delete("/goals")
-      .send({ ...goal1, creator_id: 1, id: 10 })
+      .send({ id: 10 })
       .set("Authorization", tokens[0]);
     expect(res.status).toBe(404);
-  });
-  it("Goal with missing fields", async () => {
-    const res = await request
-      .delete("/goals")
-      .send({ ...invalidGoalName, id: 1, creator_id: 1 })
-      .set("Authorization", tokens[0]);
-    expect(res.status).toBe(403);
-  });
-  it("Goal with negative reward", async () => {
-    const res = await request
-      .delete("/goals")
-      .send({ ...invalidGoalReward, id: 1, creator_id: 1 })
-      .set("Authorization", tokens[0]);
-    expect(res.status).toBe(403);
   });
   it("Deletes goal1 for user 1", async () => {
     const res = await request
       .delete("/goals")
-      .send({ ...goal1, creator_id: 1, id: 1, name: "updatedGoal1" })
+      .send({ id: 1 })
       .set("Authorization", tokens[0]);
     expect(res.status).toBe(200);
     expect(res.body).toEqual({
@@ -371,7 +354,7 @@ describe("deleteGoal", () => {
   it("Deletes goal1 for user 2", async () => {
     const res = await request
       .delete("/goals")
-      .send({ ...goal2, creator_id: 2, id: 2 })
+      .send({ id: 2 })
       .set("Authorization", tokens[1]);
     expect(res.status).toBe(200);
   });

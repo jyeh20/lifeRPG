@@ -261,18 +261,10 @@ const deleteItem = async (req, res) => {
     return;
   }
 
-  let itemToDelete = undefined;
-  try {
-    itemToDelete = new Item(req.body);
-  } catch (error) {
-    console.log(error);
-    res.status(403).json({ error: "Invalid item format" });
-    return;
-  }
+  let itemToDeleteId = req.body.id;
 
   try {
-    console.log("deleting", itemToDelete);
-    await checkIfExists("Item", itemToDelete.id, token.id);
+    await checkIfExists("Item", itemToDeleteId, token.id);
   } catch (error) {
     /* istanbul ignore else */
     if (error.code === 404) {
@@ -288,11 +280,10 @@ const deleteItem = async (req, res) => {
   const client = await pool.connect();
   try {
     client.query("BEGIN");
-    const itemId = itemToDelete.id;
     const creatorId = token.id;
     const queryText =
       "DELETE FROM ITEMS WHERE id = $1 AND creator_id = $2 RETURNING *;";
-    const values = [itemId, creatorId];
+    const values = [itemToDeleteId, creatorId];
     const { rows } = await query(queryText, values);
     console.log(`Successfully deleted item ${rows[0].id}`);
     await client.query("COMMIT");
