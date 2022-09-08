@@ -1,6 +1,7 @@
 /**
  * Credit: https://node-postgres.com/guides/project-structure
  */
+/* istanbul ignore file */
 
 import dotenv from "dotenv";
 import pg from "pg";
