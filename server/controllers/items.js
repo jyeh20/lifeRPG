@@ -266,7 +266,7 @@ const deleteItem = async (req, res) => {
     itemToDelete = new Item(req.body);
   } catch (error) {
     console.log(error);
-    res.status(400).json({ error: "Invalid item format" });
+    res.status(403).json({ error: "Invalid item format" });
     return;
   }
 
@@ -296,7 +296,7 @@ const deleteItem = async (req, res) => {
     const { rows } = await query(queryText, values);
     console.log(`Successfully deleted item ${rows[0].id}`);
     await client.query("COMMIT");
-    res.status(200).json();
+    res.status(200).json(rows[0]);
   } catch (error) {
     /* istanbul ignore next */
     await client.query("ROLLBACK");
