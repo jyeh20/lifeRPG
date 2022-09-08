@@ -4,10 +4,10 @@ import * as ctrl from "../controllers/goals.js";
 const router = express.Router();
 
 router.get("/goals", ctrl.getGoals);
-router.get("/goals/:id", ctrl.getGoalById);
-router.get("/goals/user/:id", ctrl.getGoalsWithUserId);
+router.get("/goals/id/:id", ctrl.getGoalById);
+router.get("/goals/name/:name", ctrl.getGoalByName);
 router.post("/goals", ctrl.createGoal);
-router.put("/goals/:id", ctrl.updateGoal);
-router.delete("/goals/:id", ctrl.deleteGoal);
+router.put("/goals", ctrl.updateGoal);
+router.delete("/goals", ctrl.deleteGoal);
 
 export default router;
