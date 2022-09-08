@@ -407,7 +407,7 @@ describe("deleteItem", () => {
       .delete("/userItem")
       .set("Authorization", tokens[0])
       .send({});
-    expect(res.status).toBe(400);
+    expect(res.status).toBe(403);
   });
   it("Deletes item 1 for user 1", async () => {
     const res = await request
