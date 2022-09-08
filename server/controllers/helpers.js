@@ -78,6 +78,28 @@ const checkIfCommissionNameIsTaken = async (commission, creatorId) => {
   }
 };
 
+const checkIfExists = async (type, id, creatorId) => {
+  const queryText = `SELECT * FROM ${type.toUpperCase()}S WHERE id = $1 AND creator_id = $2`;
+  const values = [id, creatorId];
+  const res = await query(queryText, values);
+  if (res.rows.length === 0) {
+    const e = new Error(`Could not find ${type} with provided ID`);
+    e.code = 404;
+    throw e;
+  }
+};
+
+const checkIfNameIsTaken = async (type, object, creatorId) => {
+  const queryText = `SELECT * FROM ${type.toUpperCase()}S WHERE name = $1 AND creator_id = $2`;
+  const values = [object.name, creatorId];
+  const res = await query(queryText, values);
+  if (res.rows.length != 0 && res.rows[0].id != object.id) {
+    const e = new Error(`${type} by that name already exists`);
+    e.code = 409;
+    throw e;
+  }
+};
+
 export {
   checkIfUserExists,
   checkIfUsernameOrEmailIsTaken,
@@ -85,4 +107,6 @@ export {
   checkIfItemNameIsTaken,
   checkIfCommissionExists,
   checkIfCommissionNameIsTaken,
+  checkIfExists,
+  checkIfNameIsTaken,
 };
