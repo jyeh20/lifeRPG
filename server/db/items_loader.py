@@ -18,13 +18,13 @@ script = ["BEGIN;\n"]
 
 for i in range(1, 20):
   script.append(f"""
-                INSERT INTO goals (
-                  creator_id, name, description, reward
+                INSERT INTO items (
+                  name, cost, item_url, creator_id
                 ) VALUES (
-                  '{get_creator()}',
                   '{get_name(i)}',
                   '{get_cost()}',
-                  '{get_item_url(i)}'
+                  '{get_item_url(i)}',
+                  '{get_creator()}'
                 );
                 """)
 

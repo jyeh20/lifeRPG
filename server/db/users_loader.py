@@ -19,7 +19,7 @@ def username_generator(first_name, last_name):
   return last_name.lower().replace("'", "") + first_name.lower().replace("'","")
 
 passwords = [
-  "'pass'", "'chicken231'", "'sa0oqiwer0!!'", "'dkko2wid2'", "'8008135'"
+  "'$2b$05$YUYYR7/QOndk2/LDRuoXXOUkgB1IRJYGUqchMmKBkWrKNORyDzPFS'", "' $2b$05$mdaedJIJR97Oma5XA2Xhh.qjfYnQkkcuGMESSY6UQH0ig2FOKFy6W'", "'$2b$05$WK6HuWPo7MYPvz97wbX8sOGdto6QJz8slbn5l7mQjEGH4W1RYAtga'", "'$2b$05$PBU5Jhms6dSq9DTuLvB/H.5wuuCn15WLJqpd8nz5LHBpWBAazJTYy'", "'$2b$05$Ti2wh1nna1ekHm9ynU4q6.dAP7MI.CPExnAtG13lKOQ8UqAp0qiyq'"
 ]
 
 def email_generator(first_name, last_name):
