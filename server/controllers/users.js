@@ -20,7 +20,7 @@ switch (nodeEnv) {
     dotenv.config({ path: "../config/config.dev.env" });
 }
 
-const getSelfById = async (req, res) => {
+const getUserWithToken = async (req, res) => {
   let token = undefined;
 
   if (!req.headers.authorization) {
@@ -51,25 +51,6 @@ const getSelfById = async (req, res) => {
     res.status(200).json(rows[0]);
   } catch (error) {
     console.log(error);
-    res.status(500).json({ error: error.message });
-  }
-};
-
-const getSelfByUsername = async (req, res) => {
-  try {
-    const token = verifyToken(req.headers.authorization);
-    const username = token.username;
-
-    const { rows } = await query("SELECT * FROM USERS WHERE username = $1;", [
-      username,
-    ]);
-    res.status(200).json(rows[0]);
-  } catch (error) {
-    console.log(error);
-    if (error.message === "jwt must be provided") {
-      res.status(401).json({ error: error.message });
-      return;
-    }
     res.status(500).json({ error: error.message });
   }
 };
@@ -338,8 +319,7 @@ const deleteSelf = async (req, res) => {
 };
 
 export {
-  getSelfById,
-  getSelfByUsername,
+  getUserWithToken,
   createUser,
   getUserWithEmailLogin,
   getUserWithUsernameLogin,
