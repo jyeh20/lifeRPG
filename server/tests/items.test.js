@@ -84,42 +84,40 @@ afterAll(async () => {
 
 describe("createItem", () => {
   it("No token", async () => {
-    const res = await request
-      .post("/userItem")
-      .send({ ...item1, creator_id: 0 });
+    const res = await request.post("/items").send({ ...item1, creator_id: 0 });
     expect(res.status).toBe(401);
   });
   it("Empty string as token", async () => {
     const res = await request
-      .post("/userItem")
+      .post("/items")
       .send({ ...item1, creator_id: 0 })
       .set("Authorization", "");
     expect(res.status).toBe(401);
   });
   it("Empty item", async () => {
     const res = await request
-      .post("/userItem")
+      .post("/items")
       .set("Authorization", tokens[0])
       .send({});
     expect(res.status).toBe(403);
   });
   it("Invalid token", async () => {
     const res = await request
-      .post("/userItem")
+      .post("/items")
       .set("Authorization", generateToken(invalidData))
       .send({ ...item1, creator_id: 0 });
     expect(res.status).toBe(401);
   });
   it("Item with missing required fields", async () => {
     const res = await request
-      .post("/userItem")
+      .post("/items")
       .set("Authorization", tokens[0])
       .send({ cost: 100 });
     expect(res.status).toBe(403);
   });
   it("Creates item 1 for user 1", async () => {
     const res = await request
-      .post("/userItem")
+      .post("/items")
       .set("Authorization", tokens[0])
       .send({ ...item1, creator_id: 1 });
     expect(res.status).toBe(201);
@@ -127,7 +125,7 @@ describe("createItem", () => {
   it("Creates duplicate item for user 1", async () => {
     const user = 1;
     const res = await request
-      .post("/userItem")
+      .post("/items")
       .set("Authorization", tokens[user - 1])
       .send({ ...item1, creator_id: user });
     expect(res.status).toBe(409);
@@ -135,7 +133,7 @@ describe("createItem", () => {
   it("Adds item 2 to user 2", async () => {
     const user = 2;
     const res = await request
-      .post("/userItem")
+      .post("/items")
       .set("Authorization", tokens[user - 1])
       .send({ ...item2, creator_id: user });
     expect(res.status).toBe(201);
@@ -143,7 +141,7 @@ describe("createItem", () => {
   it("Adds item 3 to user 1", async () => {
     const user = 1;
     const res = await request
-      .post("/userItem")
+      .post("/items")
       .set("Authorization", tokens[user - 1])
       .send({ ...item3, creator_id: user });
     expect(res.status).toBe(201);
@@ -151,7 +149,7 @@ describe("createItem", () => {
   it("Adds item 4 to user 2", async () => {
     const user = 2;
     const res = await request
-      .post("/userItem")
+      .post("/items")
       .set("Authorization", tokens[user - 1])
       .send({ ...item4, creator_id: user });
     expect(res.status).toBe(201);
@@ -159,7 +157,7 @@ describe("createItem", () => {
   it("Adds item 4 to user 1", async () => {
     const user = 1;
     const res = await request
-      .post("/userItem")
+      .post("/items")
       .set("Authorization", tokens[user - 1])
       .send({ ...item4, creator_id: user });
     expect(res.status).toBe(201);
@@ -167,7 +165,7 @@ describe("createItem", () => {
   it("Adds item 5 to user 2", async () => {
     const user = 2;
     const res = await request
-      .post("/userItem")
+      .post("/items")
       .set("Authorization", tokens[user - 1])
       .send({ ...item5, creator_id: user });
     expect(res.status).toBe(201);
@@ -175,7 +173,7 @@ describe("createItem", () => {
   it("Adds item 6 to user 1", async () => {
     const user = 1;
     const res = await request
-      .post("/userItem")
+      .post("/items")
       .set("Authorization", tokens[user - 1])
       .send({ ...item6, creator_id: user });
     expect(res.status).toBe(201);
@@ -184,26 +182,26 @@ describe("createItem", () => {
 
 describe("getItems", () => {
   it("No token", async () => {
-    const res = await request.get("/userItems");
+    const res = await request.get("/items");
     expect(res.status).toBe(401);
   });
   it("Empty string as token", async () => {
-    const res = await request.get("/userItems").set("Authorization", "");
+    const res = await request.get("/items").set("Authorization", "");
     expect(res.status).toBe(401);
   });
   it("Invalid token", async () => {
     const res = await request
-      .get("/userItems")
+      .get("/items")
       .set("Authorization", generateToken(invalidData));
     expect(res.status).toBe(401);
   });
   it("Returns items for user 1", async () => {
-    const res = await request.get("/userItems").set("Authorization", tokens[0]);
+    const res = await request.get("/items").set("Authorization", tokens[0]);
     expect(res.status).toBe(200);
     expect(res.body.length).toBe(4);
   });
   it("Returns items for user 2", async () => {
-    const res = await request.get("/userItems").set("Authorization", tokens[1]);
+    const res = await request.get("/items").set("Authorization", tokens[1]);
     expect(res.status).toBe(200);
     expect(res.body.length).toBe(3);
   });
@@ -211,22 +209,22 @@ describe("getItems", () => {
 
 describe("getItemById", () => {
   it("No token", async () => {
-    const res = await request.get("/userItem/id/1");
+    const res = await request.get("/items/id/1");
     expect(res.status).toBe(401);
   });
   it("Empty string as token", async () => {
-    const res = await request.get("/userItem/id/1").set("Authorization", "");
+    const res = await request.get("/items/id/1").set("Authorization", "");
     expect(res.status).toBe(401);
   });
   it("Invalid token", async () => {
     const res = await request
-      .get("/userItem/id/1")
+      .get("/items/id/1")
       .set("Authorization", generateToken(invalidData));
     expect(res.status).toBe(401);
   });
   it("Returns item 1 for user 1", async () => {
     const res = await request
-      .get("/userItem/id/1")
+      .get("/items/id/1")
       .set("Authorization", tokens[0]);
     expect(res.status).toBe(200);
     expect(res.body.id).toBe(1);
@@ -234,7 +232,7 @@ describe("getItemById", () => {
   });
   it("Returns item 2 for user 2", async () => {
     const res = await request
-      .get("/userItem/id/2")
+      .get("/items/id/2")
       .set("Authorization", tokens[1]);
     expect(res.status).toBe(200);
     expect(res.body.id).toBe(2);
@@ -242,7 +240,7 @@ describe("getItemById", () => {
   });
   it("Returns item 4 for user 2", async () => {
     const res = await request
-      .get("/userItem/id/4")
+      .get("/items/id/4")
       .set("Authorization", tokens[1]);
     expect(res.status).toBe(200);
     expect(res.body.id).toBe(4);
@@ -250,7 +248,7 @@ describe("getItemById", () => {
   });
   it("Returns item 4 for user 1", async () => {
     const res = await request
-      .get("/userItem/id/5")
+      .get("/items/id/5")
       .set("Authorization", tokens[0]);
     expect(res.status).toBe(200);
     expect(res.body.id).toBe(5);
@@ -260,24 +258,22 @@ describe("getItemById", () => {
 
 describe("getItemByName", () => {
   it("No token", async () => {
-    const res = await request.get("/userItem/name/item1");
+    const res = await request.get("/items/name/item1");
     expect(res.status).toBe(401);
   });
   it("Empty string as token", async () => {
-    const res = await request
-      .get("/userItem/name/item1")
-      .set("Authorization", "");
+    const res = await request.get("/items/name/item1").set("Authorization", "");
     expect(res.status).toBe(401);
   });
   it("Invalid token", async () => {
     const res = await request
-      .get("/userItem/name/item1")
+      .get("/items/name/item1")
       .set("Authorization", generateToken(invalidData));
     expect(res.status).toBe(401);
   });
   it("Returns item 1 for user 1", async () => {
     const res = await request
-      .get("/userItem/name/item1")
+      .get("/items/name/item1")
       .set("Authorization", tokens[0]);
     expect(res.status).toBe(200);
     expect(res.body.id).toBe(1);
@@ -285,7 +281,7 @@ describe("getItemByName", () => {
   });
   it("Returns item 2 for user 2", async () => {
     const res = await request
-      .get("/userItem/name/item2")
+      .get("/items/name/item2")
       .set("Authorization", tokens[1]);
     expect(res.status).toBe(200);
     expect(res.body.id).toBe(2);
@@ -293,7 +289,7 @@ describe("getItemByName", () => {
   });
   it("Returns item 4 for user 2", async () => {
     const res = await request
-      .get("/userItem/name/item4")
+      .get("/items/name/item4")
       .set("Authorization", tokens[1]);
     expect(res.status).toBe(200);
     expect(res.body.id).toBe(4);
@@ -301,7 +297,7 @@ describe("getItemByName", () => {
   });
   it("Returns item 4 for user 1", async () => {
     const res = await request
-      .get("/userItem/name/item4")
+      .get("/items/name/item4")
       .set("Authorization", tokens[0]);
     expect(res.status).toBe(200);
     expect(res.body.id).toBe(5);
@@ -312,48 +308,48 @@ describe("getItemByName", () => {
 describe("updateItem", () => {
   it("No token", async () => {
     const res = await request
-      .put("/userItem")
+      .put("/items")
       .send({ ...item1, creator_id: 0, id: 1 });
     expect(res.status).toBe(401);
   });
   it("Empty string as token", async () => {
     const res = await request
-      .put("/userItem")
+      .put("/items")
       .send({ ...item1, creator_id: 0, id: 1 })
       .set("Authorization", "");
     expect(res.status).toBe(401);
   });
   it("Empty item", async () => {
     const res = await request
-      .put("/userItem")
+      .put("/items")
       .set("Authorization", tokens[0])
       .send({});
     expect(res.status).toBe(403);
   });
   it("Invalid token", async () => {
     const res = await request
-      .put("/userItem")
+      .put("/items")
       .set("Authorization", generateToken(invalidData))
       .send(newItem1);
     expect(res.status).toBe(401);
   });
   it("Item doesn't exist", async () => {
     const res = await request
-      .put("/userItem")
+      .put("/items")
       .set("Authorization", tokens[0])
       .send({ ...item1, creator_id: 1, id: 10 });
     expect(res.status).toBe(404);
   });
   it("Item with missing required fields", async () => {
     const res = await request
-      .put("/userItem")
+      .put("/items")
       .set("Authorization", tokens[0])
       .send({ cost: 100 });
     expect(res.status).toBe(403);
   });
   it("Updates item 1 for user 1 with new item_url", async () => {
     const res = await request
-      .put("/userItem")
+      .put("/items")
       .set("Authorization", tokens[0])
       .send(newItem1);
     expect(res.status).toBe(200);
@@ -361,7 +357,7 @@ describe("updateItem", () => {
   it("Creates duplicate item for user 1", async () => {
     const user = 1;
     const res = await request
-      .put("/userItem")
+      .put("/items")
       .set("Authorization", tokens[user - 1])
       .send(duplicateItem1);
     expect(res.status).toBe(409);
@@ -369,7 +365,7 @@ describe("updateItem", () => {
   it("Updates item 2 for user 2 with new cost", async () => {
     const user = 2;
     const res = await request
-      .put("/userItem")
+      .put("/items")
       .set("Authorization", tokens[user - 1])
       .send(newItem2);
     expect(res.status).toBe(200);
@@ -378,47 +374,47 @@ describe("updateItem", () => {
 
 describe("deleteItem", () => {
   it("No token", async () => {
-    const res = await request.delete("/userItem").send({ id: newItem1.id });
+    const res = await request.delete("/items").send({ id: newItem1.id });
     expect(res.status).toBe(401);
   });
   it("Empty string as token", async () => {
     const res = await request
-      .delete("/userItem")
+      .delete("/items")
       .set("Authorization", "")
       .send({ id: newItem1.id });
     expect(res.status).toBe(401);
   });
   it("Invalid token", async () => {
     const res = await request
-      .delete("/userItem")
+      .delete("/items")
       .set("Authorization", generateToken(invalidData))
       .send({ id: newItem1.id });
     expect(res.status).toBe(401);
   });
   it("Item doesn't exist", async () => {
     const res = await request
-      .delete("/userItem")
+      .delete("/items")
       .set("Authorization", tokens[0])
       .send({ id: 10 });
     expect(res.status).toBe(404);
   });
   it("Deletes empty item for user 1", async () => {
     const res = await request
-      .delete("/userItem")
+      .delete("/items")
       .set("Authorization", tokens[0])
       .send({});
     expect(res.status).toBe(404);
   });
   it("Deletes item 1 for user 1", async () => {
     const res = await request
-      .delete("/userItem")
+      .delete("/items")
       .set("Authorization", tokens[0])
       .send({ id: newItem1.id });
     expect(res.status).toBe(200);
   });
   it("Deletes item 2 for user 2", async () => {
     const res = await request
-      .delete("/userItem")
+      .delete("/items")
       .set("Authorization", tokens[1])
       .send({ id: newItem2.id });
     expect(res.status).toBe(200);
@@ -426,14 +422,14 @@ describe("deleteItem", () => {
   it("Deletes item 4 for user 2", async () => {
     console.log("Deleting item 4 from user 2");
     const res = await request
-      .delete("/userItem")
+      .delete("/items")
       .set("Authorization", tokens[1])
       .send({ id: 4 });
     expect(res.status).toBe(200);
   });
   it("Deletes item 4 for user 1", async () => {
     const res = await request
-      .delete("/userItem")
+      .delete("/items")
       .set("Authorization", tokens[0])
       .send({ id: 5 });
     expect(res.status).toBe(200);

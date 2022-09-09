@@ -206,7 +206,7 @@ describe("getUsers", () => {
   });
 });
 
-describe("getSelfById", () => {
+describe("getUserWithToken", () => {
   it("Get user by id with no token", async () => {
     const res = await request.get("/users/id").set("Authorization", "");
     expect(res.status).toBe(401);
@@ -245,26 +245,6 @@ describe("getSelfById", () => {
   it("Crash server", async () => {
     await loader.endPool();
     const res = await request.get("/users/id").set("Authorization", user);
-    expect(res.status).toBe(500);
-    await loader.startPool();
-  });
-});
-
-describe("getSelfByUsername", () => {
-  it("Get user by username with no token", async () => {
-    const res = await request.get("/users/username").set("Authorization", "");
-    expect(res.status).toBe(401);
-  });
-  it("Get user by username with user token", async () => {
-    const res = await request.get("/users/username").set("Authorization", user);
-    expect(res.status).toBe(200);
-    const queriedUser = res.body;
-    expect(queriedUser.id).toBe(2);
-    expect(queriedUser.username).toBe(userData.username);
-  });
-  it("Crash server", async () => {
-    await loader.endPool();
-    const res = await request.get("/users/username").set("Authorization", user);
     expect(res.status).toBe(500);
     await loader.startPool();
   });
